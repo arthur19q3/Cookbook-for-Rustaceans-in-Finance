@@ -10,15 +10,15 @@
 
 Rust在量化金融中的关键特性有：
 
-**安全性与可靠性**：Rust的主要目标是在不牺牲性能的情况下提供内存安全性。在量化金融领域，准确性和可靠性至关重要，Rust的严格编译时检查和所有权系统有助于消除常见的编程错误，并确保金融应用程序的稳健性。
+1️⃣ **安全性与可靠性：**Rust的主要目标是在不牺牲性能的情况下提供内存安全性。在量化金融领域，准确性和可靠性至关重要，Rust的严格编译时检查和所有权系统有助于消除常见的编程错误，并确保金融应用程序的稳健性。
 
-**性能**：Rust具备对资源的低级别控制能力，适用于复杂的量化金融算法的高性能计算。其零成本抽象和高效的内存处理使其非常适合处理大数据集并执行计算密集型任务。
+2️⃣**性能**：Rust具备对资源的低级别控制能力，适用于复杂的量化金融算法的高性能计算。其零成本抽象和高效的内存处理使其非常适合处理大数据集并执行计算密集型任务。
 
-并发性和并行性：在高频交易和实时分析领域，一致性和并行性至关重要。Rust的所有权模型和独特的并发原语，如通道（channels）和async/await，简化了并发应用程序的开发，同时确保线程安全，避免数据竞争。
+3️⃣**并发性和并行性**：在高频交易和实时分析领域，一致性和并行性至关重要。Rust的所有权模型和独特的并发原语，如通道（channels）和async/await，简化了并发应用程序的开发，同时确保线程安全，避免数据竞争。
 
-**量化金融生态系统**：Rust拥有不断壮大的针对量化金融的库和框架生态系统，使构建复杂的金融模型、数据分析工具和交易系统变得更加容易。诸如ndarray、statrs和rust-csv等库提供了强大的支持，用于数值计算、统计和数据处理。
+4️⃣**量化金融生态系统**：Rust拥有不断壮大的针对量化金融的库和框架生态系统，使构建复杂的金融模型、数据分析工具和交易系统变得更加容易。诸如ndarray、statrs和rust-csv等库提供了强大的支持，用于数值计算、统计和数据处理。
 
-**跨平台兼容性**：Rust注重可移植性，您可以开发能够在不同操作系统和架构上无缝运行的应用程序。这种灵活性在金融行业中非常有价值，因为系统需要在各种平台上部署，并保持一致的行为。
+5️⃣**跨平台兼容性**：Rust注重可移植性，你可以开发能够在不同操作系统和架构上无缝运行的应用程序。这种灵活性在金融行业中非常有价值，因为系统需要在各种平台上部署，并保持一致的行为。
 
 🚀 学习Rust并应用于量化金融：
 
@@ -46,7 +46,7 @@ $ curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
 Rust is installed now. Great! 
 ```
 
-就算完成 Rust 安装了。
+就完成 Rust 安装了。
 
 
 
@@ -2800,11 +2800,11 @@ fn main() {
 投资组合风险水平中等，有少量高风险资产。
 ```
 
+
+
 ### 9.2 for 循环  (For Loops)
 
 Rust 是一种系统级编程语言，它具有强大的内存安全性和并发性能。在 Rust 中，使用 `for` 循环来迭代集合（如数组、向量、切片等）中的元素或者执行某个操作一定次数。下面是 Rust 中 `for` 循环的基本语法和一些示例：
-
-
 
 #### 9.2.1 范围
 
@@ -2824,8 +2824,6 @@ fn main() {
 
 #### 9.2.2 迭代器
 
-##### a.迭代集合元素
-
 在 Rust 中，使用 `for` 循环来迭代集合（例如数组或向量）中的元素非常简单。下面是一个示例，演示如何迭代一个整数数组中的元素：
 
 ```rust
@@ -2844,11 +2842,9 @@ fn main() {
 
 ### 9.3 迭代器方法`map`,`filter`和`fold`
 
-
-
 除了使用 `for` 循环，你还可以使用 Rust 的迭代器方法来处理集合中的元素。这些方法包括 `map`、`filter`、`fold` 等，它们允许你进行更复杂的操作。
 
-#### 9.3.1
+#### 9.3.1 map方法
 
 例如：
 
@@ -2864,6 +2860,116 @@ fn main() {
 ```
 
 在上述示例中，我们使用了 `map` 方法将原始向量中的每个元素都乘以 2，然后使用 `collect` 方法将结果收集到一个新的向量中。
+
+#### 9.3.2 next方法
+
+在金融领域，一个常见的用例是处理时间序列数据。假设我们有一个包含股票价格的时间序列数据集，我们想要找出大于给定阈值的下一个价格。我们可以使用Rust中的`next`方法来实现这个功能。
+
+首先，我们需要定义一个结构体来表示时间序列数据。假设我们的数据存储在一个`Vec<f64>`中，其中每个元素代表一个时间点的股票价格。我们可以创建一个名为`TimeSeries`的结构体，并实现`Iterator` trait来使其可迭代。
+
+```rust
+pub struct TimeSeries {  
+    data: Vec<f64>,  
+    index: usize,  
+}  
+  
+impl TimeSeries {  
+    pub fn new(data: Vec<f64>) -> Self {  
+        Self { data, index: 0 }  
+    }  
+}  
+  
+impl Iterator for TimeSeries {  
+    type Item = f64;  
+  
+    fn next(&mut self) -> Option<Self::Item> {  
+        if self.index < self.data.len() {  
+            let value = self.data[self.index];  
+            self.index += 1;  
+            Some(value)  
+        } else {  
+            None  
+        }  
+    }  
+}
+```
+
+接下来，我们可以创建一个函数来找到大于给定阈值的下一个价格。我们可以使用`filter`方法和`next`方法来遍历时间序列数据，并找到第一个大于阈值的价格。
+
+```rust
+pub fn find_next_threshold(time_series: &mut TimeSeries, threshold: f64) -> Option<f64> {  
+    time_series.filter(|&price| price > threshold).next()  
+}
+```
+
+现在，我们可以使用这个函数来查找时间序列数据中大于给定阈值的下一个价格。以下是一个示例：
+
+```rust
+fn main() {  
+    let data = vec![10.0, 20.0, 30.0, 40.0, 50.0];  
+    let mut time_series = TimeSeries::new(data);  
+    let threshold = 35.0;  
+  
+    match find_next_threshold(&mut time_series, threshold) {  
+        Some(price) => println!("下一个大于{}的价格是{}", threshold, price),  
+        None => println!("没有找到大于{}的价格", threshold),  
+    }  
+}
+```
+
+在这个示例中，我们创建了一个包含股票价格的时间序列数据，并使用`find_next_threshold`函数找到大于35.0的下一个价格。输出将会是"下一个大于35的价格是40"。如果没有找到大于阈值的价格，输出将会是"没有找到大于35的价格"。
+
+#### 9.3.3 filter 方法
+
+filter方法是一个在金融数据分析中常用的方法，它用于筛选出符合特定条件的元素并返回一个新的迭代器。这个方法需要传入一个闭包作为参数，该闭包接受一个元素的引用并返回一个布尔值，用于判断该元素是否应该被包含在结果迭代器中。
+
+在金融分析中，我们通常需要筛选出符合某些条件的数据进行处理，例如筛选出大于某个阈值的股票或者小于某个阈值的交易。filter方法可以帮助我们方便地实现这个功能。
+
+下面是一个使用filter方法筛选出大于某个阈值的交易的例子：
+
+```rust
+// 定义一个Trade结构体  
+#[derive(Debug, PartialEq)]  
+struct Trade {  
+    price: f64,  
+    volume: i32,  
+}  
+  
+fn main() {  
+    let trades = vec![  
+        Trade { price: 10.0, volume: 100 },  
+        Trade { price: 20.0, volume: 200 },  
+        Trade { price: 30.0, volume: 300 },  
+    ];  
+  
+    let threshold = 25.0;  
+  
+    let mut filtered_trades = trades.iter().filter(|trade| trade.price > threshold);  
+  
+    match filtered_trades.next() {  
+        Some(&Trade { price: 30.0, volume: 300 }) => println!("第一个交易正确"),  
+        _ => println!("第一个交易不正确"),  
+    }  
+  
+    match filtered_trades.next() {  
+        None => println!("没有更多的交易"),  
+        _ => println!("还有更多的交易"),  
+    }  
+}
+```
+
+**执行结果：**
+
+```text
+第一个交易正确
+没有更多的交易
+```
+
+在这个例子中，我们有一个包含多个交易的向量，每个交易都有一个价格和交易量。我们想要筛选出价格大于25.0的交易。我们使用filter方法传入一个闭包来实现这个筛选。闭包接受一个Trade的引用并返回该交易的价格是否大于阈值。最终，我们得到一个只包含符合条件的交易的迭代器。
+
+#### 9.3.4 fold 方法
+
+#### 9.3.5 collect 方法
 
 ### 9.4 while 循环 (While Loops)
 
