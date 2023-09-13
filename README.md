@@ -1620,7 +1620,7 @@ fn main() {
 
 ## Chapter 5 - Hashmap 
 
-### **5.1** 数值同质且类型安全的Hashmap
+### **5.1** 数据类型同质且类型安全的Hashmap
 
 在 Rust 中使用 HashMap 进行量化金融的案例是很常见的。HashMap 是 Rust 标准库中的一个集合类型，用于存储键值对，它可以用于管理金融数据和执行各种金融计算。以下是一个简单的 Rust 量化金融案例，涵盖了如何使用 HashMap 来管理股票价格数据：
 
@@ -1705,7 +1705,7 @@ AAPL: $150
 
 
 
-### 5.2 数值异质但是仍然安全的Hashmap
+### 5.2 数据类型异质但是仍然安全的Hashmap
 
 **思考: Rust 的 HashMap 是类型安全的，要求键和值都具有相同的类型，而 Python 的字典可以容纳不同类型的键和值。能不能实现不安全的 键和值可以都具有不相同的类型的 hashmap ?**
 
@@ -2359,6 +2359,89 @@ fn main() {
 
 在这个示例中，我们定义了一个泛型 `Portfolio<T>` 结构体，表示投资组合，但我们通过 trait `Asset` 和具体的资产类型（`Stock` 和 `Option`）来保持每种资产的独立性。这样可以更清晰地表示不同类型的资产，同时保留了泛型的灵活，以处理投资组合中的不同资产类型。这是一种更合理的使用泛型的方式，可以避免不必要的混淆。
 
+### 7.6 别名 (Alias)
+
+在很多编程语言中，包括像Rust、TypeScript和Python等，都提供了一种机制来给已有的类型取一个新的名字，这通常被称为"类型别名"或"类型重命名"。这可以增加代码的可读性和可维护性，尤其在处理复杂的类型时很有用。Rust的类型系统可以非常强大和灵活。
+
+让我们再次演示一个量化金融领域的案例，这次类型别名是主角。这个示例将使用类型别名来表示不同的金融数据， 如价格、交易量、日期等。
+
+
+
+```rust
+// 定义一个类型别名，表示价格
+type Price = f64;
+
+// 定义一个类型别名，表示交易量
+type Volume = u32;
+
+// 定义一个类型别名，表示日期
+type Date = String;
+
+// 定义一个结构体，表示股票数据
+struct StockData {
+    symbol: String,
+    date: Date,
+    price: Price,
+    volume: Volume,
+}
+
+// 定义一个结构体，表示债券数据
+struct BondData {
+    name: String,
+    date: Date,
+    price: Price,
+}
+
+fn main() {
+    // 创建股票数据
+    let apple_stock = StockData {
+        symbol: String::from("AAPL"),
+        date: String::from("2023-09-13"),
+        price: 150.0,
+        volume: 10000,
+    };
+
+    // 创建债券数据
+    let us_treasury_bond = BondData {
+        name: String::from("US Treasury Bond"),
+        date: String::from("2023-09-13"),
+        price: 1000.0,
+    };
+
+    // 输出股票数据和债券数据
+    println!("Stock Data:");
+    println!("Symbol: {}", apple_stock.symbol);
+    println!("Date: {}", apple_stock.date);
+    println!("Price: ${}", apple_stock.price);
+    println!("Volume: {}", apple_stock.volume);
+
+    println!("");
+
+    println!("Bond Data:");
+    println!("Name: {}", us_treasury_bond.name);
+    println!("Date: {}", us_treasury_bond.date);
+    println!("Price: ${}", us_treasury_bond.price);
+}
+
+```
+
+**执行结果：**
+
+```text
+Stock Data:
+Symbol: AAPL
+Date: 2023-09-13
+Price: $150
+Volume: 10000
+
+Bond Data:
+Name: US Treasury Bond
+Date: 2023-09-13
+Price: $1000
+```
+
+
+
 ## Chapter 8 - 类型转换
 
 ### 8.1 From 和 Into 特性
@@ -2457,11 +2540,82 @@ fn main() {
 
 ```
 
-在这个示例中，我们定义了一个 `StockPrice` 结构体来表示股票价格，然后使用 `TryFrom` 实现了从 `StockPrice` 到 `f64` 的类型转换，其中 `f64` 表示对数收益率。如果股票价格小于等于0，转换会产生错误。在 `main` 函数中，我们演示了如何使用 `TryFrom` 进行类型转换，并在可能失败的情况下获取 `Result` 类型的结果。这个示例展示了如何在量化金融中处理不同类型之间的转换。
+在这个示例中，我们定义了一个 `StockPrice` 结构体来表示股票价格，然后使用 `TryFrom` 实现了从 `StockPrice` 到 `f64` 的类型转换，其中 `f64` 表示对数收益率。
+
+![自然对数函数示意](https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Logarithm.svg/300px-Logarithm.svg.png)
+
+自然对数（英语：Natural logarithm）为以数学常数e为底数的对数函数，我们知道它的定义域是**(0, +∞)**，也就是取值是要大于0的。如果股票价格小于等于0，转换会产生错误。在 `main` 函数中，我们演示了如何使用 `TryFrom` 进行类型转换，并在可能失败的情况下获取 `Result` 类型的结果。这个示例展示了如何在量化金融中处理不同类型之间的转换。
 
 
 
 ### 8.3 ToString和FromStr
+
+这两个 trait 是用于类型转换和解析字符串的常用方法。让我给你解释一下它们的作用和在量化金融领域中的一个例子。
+
+首先，ToString trait 是用于将类型转换为字符串的 trait。它是一个通用 trait，可以为任何类型实现。通过实现ToString trait，类型可以使用to_string()方法将自己转换为字符串。例如，如果有一个表示价格的自定义结构体，可以实现ToString trait以便将其价格转换为字符串形式。
+
+```rust
+struct Price {
+    currency: String,
+    value: f64,
+}
+
+impl ToString for Price {
+    fn to_string(&self) -> String {
+        format!("{} {}", self.value, self.currency)
+    }
+}
+
+fn main() {
+    let price = Price {
+        currency: String::from("USD"),
+        value: 10.99,
+    };
+    let price_string = price.to_string();
+    println!("Price: {}", price_string); // 输出: "Price: 10.99 USD"
+}
+
+```
+
+接下来，FromStr trait 是用于从字符串解析出指定类型的 trait。它也是通用 trait，可以为任何类型实现。通过实现FromStr trait，类型可以使用from_str()方法从字符串中解析出自身。例如，在金融领域中，如果有一个表示股票价格的类型，可以实现FromStr trait以便从字符串解析出股票价格。
+
+```rust
+use std::str::FromStr;
+
+struct StockPrice {
+    ticker_symbol: String,
+    price: f64,
+}
+
+impl FromStr for StockPrice {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let components: Vec<&str> = s.split(':').collect();
+
+        if components.len() != 2 {
+            return Err(());
+        }
+
+        let ticker_symbol = String::from(components[0]);
+        let price = components[1].parse::<f64>().unwrap();
+
+        Ok(StockPrice {
+            ticker_symbol,
+            price,
+        })
+    }
+}
+
+fn main() {
+    let price_string = "AAPL:150.64";
+    let stock_price = StockPrice::from_str(price_string).unwrap();
+    println!("Ticker Symbol: {}", stock_price.ticker_symbol); // 输出: "AAPL"
+    println!("Price: {}", stock_price.price); // 输出: "150.64"
+}
+```
+
+
 
 ## Chapter 9 - 流程控制
 ## Chapter 10 - 函数, 方法 和 闭包
