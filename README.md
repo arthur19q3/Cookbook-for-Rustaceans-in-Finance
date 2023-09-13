@@ -4,13 +4,13 @@
 
 /Arthur Zhang
 
-##  Introduction
+#  Introduction
 
 本书是专门为量化金融领域开发者编纂的Rust基础入门手册。为帮助开发者短时间内进入上手开发的阶段，本手册将致力于始终维持**实用**和**实例呈现**为导向的风格。
 
 
 
-## Chapter 1 -  Rust 语言入门101
+# Chapter 1 -  Rust 语言入门101
 ### 1.1 在类Unix操作系统(Linux,MacOS)上安装 rustup
 
 打开终端并输入下面命令：
@@ -266,7 +266,7 @@ $ cargo check
 
 
 
-## Chapter 2 - 格式化输出
+# Chapter 2 - 格式化输出
 
 ###  2.1 诸种格式宏(format macros)
 
@@ -443,7 +443,7 @@ FinancialReport { income: 10000.0, expenses: 7500.0 } //Debug Trait帮我们推�
 
    - `write!` 宏用于将格式化的文本写入到一个实现了 `std::io::Write` trait 的对象中，通常是文件、标准输出（`std::io::stdout()`）或标准错误（`std::io::stderr()`）。
 
-   - 使用 `write!` 时，您需要指定目标输出流，将生成的文本写入该流中，而不是直接在控制台打印。
+   - 使用 `write!` 时，你需要指定目标输出流，将生成的文本写入该流中，而不是直接在控制台打印。
 
    - `write!` 生成的文本不会立即显示在屏幕上，而是需要进一步将其刷新（flush）到输出流中。
 
@@ -476,7 +476,7 @@ FinancialReport { income: 10000.0, expenses: 7500.0 } //Debug Trait帮我们推�
 
    - `format!` 宏用于生成一个格式化的字符串，而不是直接将其写入输出流或打印到控制台。
 
-   - 它返回一个 `String` 类型的字符串，您可以随后使用它进行进一步处理、打印或写入到文件中。
+   - 它返回一个 `String` 类型的字符串，你可以随后使用它进行进一步处理、打印或写入到文件中。
 
    - 示例用法：
      ```rust
@@ -488,11 +488,11 @@ FinancialReport { income: 10000.0, expenses: 7500.0 } //Debug Trait帮我们推�
 
 总结：
 
-- 如果您想将格式化的文本输出到标准输出，通常使用 `print!`。
-- 如果您想将格式化的文本输出到文件或其他实现了 `Write` trait 的对象，使用 `write!`。
-- 如果您只想生成一个格式化的字符串而不需要立即输出，使用 `format!`。
+- 如果你想将格式化的文本输出到标准输出，通常使用 `print!`。
+- 如果你想将格式化的文本输出到文件或其他实现了 `Write` trait 的对象，使用 `write!`。
+- 如果你只想生成一个格式化的字符串而不需要立即输出，使用 `format!`。
 
-## Chapter 3 - 原生类型
+# Chapter 3 - 原生类型
 
 "原生类型"（Primitive Types）是计算机科学中的一个通用术语，通常用于描述编程语言中的基本数据类型。Rust中的原生类型被称为原生，因为它们是语言的基础构建块，通常由编译器和底层硬件直接支持。以下是为什么这些类型被称为原生类型的几个原因：
 
@@ -774,7 +774,7 @@ Rust语言中，你可以使用不同类型的字面量来表示不同的数据�
    - `|`（按位或）：对两个数的每一位执行或操作，例如 `a | b`。
    - `^`（按位异或）：对两个数的每一位执行异或操作，例如 `a ^ b`。
 
-这些运算符在 Rust 中用于执行各种数学、逻辑和位操作，使您能够编写灵活和高效的代码。
+这些运算符在 Rust 中用于执行各种数学、逻辑和位操作，使你能够编写灵活和高效的代码。
 
 现在把这些运算符带到实际场景来看一下：
 
@@ -1289,7 +1289,7 @@ fn fold<B, F>(self, init: B, f: F) -> B
 
 
 
-## Chapter 4 - 自定义类型 Struct & Enum 
+# Chapter 4 - 自定义类型 Struct & Enum 
 
 ### 4.1 结构体（`struct`）
 
@@ -1332,25 +1332,25 @@ fn main() {
 总价值: $150500.00
 ```
 
-在 Rust 中，您可以为自定义类型（包括结构体 `struct`）实现 `Display` 和 `Debug` 特性来控制如何以可读和调试友好的方式打印（格式化）该类型的实例。这两个特性是 Rust 标准库中的 trait，它们提供了不同的打印输出方式，适用于不同的用途。
+在 Rust 中，你可以为自定义类型（包括结构体 `struct`）实现 `Display` 和 `Debug` 特性来控制如何以可读和调试友好的方式打印（格式化）该类型的实例。这两个特性是 Rust 标准库中的 trait，它们提供了不同的打印输出方式，适用于不同的用途。
 
 1. `Display` 特性：
 
-   - `Display` 特性用于定义类型的人类可读字符串表示形式，通常用于用户友好的输出。例如，您可以实现 `Display` 特性来打印结构体的信息，以便用户能够轻松理解它。
+   - `Display` 特性用于定义类型的人类可读字符串表示形式，通常用于用户友好的输出。例如，你可以实现 `Display` 特性来打印结构体的信息，以便用户能够轻松理解它。
 
    - 要实现 `Display` 特性，必须定义一个名为 `fmt` 的方法，它接受一个格式化器对象（`fmt::Formatter`）作为参数，并将要打印的信息写入该对象。
 
    - 使用 `{}` 占位符可以在 `println!` 宏或 `format!` 宏中使用 `Display` 特性。
 
-   - 通常，实现 `Display` 特性需要手动编写代码来指定打印的格式，以确保输出满足您的需求。
+   - 通常，实现 `Display` 特性需要手动编写代码来指定打印的格式，以确保输出满足你的需求。
 
 2. `Debug` 特性：
 
    - `Debug` 特性用于定义类型的调试输出形式，通常用于开发和调试过程中，以便查看内部数据结构和状态。
 
-   - 与 `Display` 不同，`Debug` 特性不需要手动指定格式，而是使用默认的格式化方式。您可以通过在 `println!` 宏或 `format!` 宏中使用 `{:?}` 占位符来打印实现了 `Debug` 特性的类型。
+   - 与 `Display` 不同，`Debug` 特性不需要手动指定格式，而是使用默认的格式化方式。你可以通过在 `println!` 宏或 `format!` 宏中使用 `{:?}` 占位符来打印实现了 `Debug` 特性的类型。
 
-   - 标准库提供了一个 `#[derive(Debug)]` 注解，您可以将其添加到结构体定义之前，以自动生成 `Debug` 实现。这使得调试更加方便，因为不需要手动编写调试输出的代码。
+   - 标准库提供了一个 `#[derive(Debug)]` 注解，你可以将其添加到结构体定义之前，以自动生成 `Debug` 实现。这使得调试更加方便，因为不需要手动编写调试输出的代码。
 
 下面是一个示例，展示了如何为一个名为 `Stock` 的结构体实现 `Display` 和 `Debug` 特性：
 
@@ -1618,7 +1618,7 @@ fn main() {
 
 
 
-## Chapter 5 - Hashmap 
+# Chapter 5 - Hashmap 
 
 ### **5.1** 数据类型同质且类型安全的Hashmap
 
@@ -1770,7 +1770,7 @@ Name: John
 
 在这个示例中，我们定义了一个名为 `Value` 的枚举，它有三个变体，分别代表整数、浮点数和字符串类型的数据。然后，我们创建了一个 HashMap，其中键是字符串，值是 `Value` 枚举。这使得我们可以在 HashMap 中存储不同类型的数据，而仍然保持类型安全。
 
-## Chapter 6 - 变量, 生命周期 和作用域
+# Chapter 6 - 变量, 生命周期 和作用域
 
 ### 6.1 作用域和遮蔽
 
@@ -2050,7 +2050,7 @@ z is ()
 ```
 总之，语句用于执行操作，而表达式用于计算值。理解这两者之间的区别对于编写Rust代码非常重要。
 
-## Chapter 7 - 类型系统
+# Chapter 7 - 类型系统
 
 在量化金融领域，Rust 的类型系统具有出色的表现，它强调了类型安全、性能和灵活性，这使得 Rust 成为一个理想的编程语言来处理金融数据和算法交易。以下是一个详细介绍 Rust 类型系统的案例，涵盖了如何在金融领域中利用其特性：
 
@@ -2453,7 +2453,7 @@ Price: $1000
 
 
 
-## Chapter 8 - 类型转换
+# Chapter 8 - 类型转换
 
 ### 8.1 From 和 Into 特性
 
@@ -2666,9 +2666,9 @@ Price String: AAPL:150.64 # 和"let price_string = "AAPL:150.64";"又对上了
 
 
 
-## Chapter 9 - 流程控制
+# Chapter 9 - 流程控制
 
-#### 9.1 if 条件语句
+### 9.1 if 条件语句
 
 在Rust中，`if` 语句用于条件控制，允许根据条件的真假来执行不同的代码块。Rust的`if`语句有一些特点和语法细节，以下是对Rust的`if`语句的介绍：
 
@@ -2767,29 +2767,88 @@ fn main() {
 投资组合风险水平中等，有少量高风险资产。
 ```
 
-#### 9.2 for 循环  (For Loops)
+### 9.2 for 循环  (For Loops)
 
-#### 9.2.1 迭代器
-
-#### 9.2.2 范围
-
-#### 9.3 while 循环 (While Loops)
-
-#### 9.4 loop循环 
-
-#### 9.5 match模式匹配
-
-#### 9.6 if let 和 while let语法糖
-
-#### 9.7 并发迭代器
+Rust 是一种系统级编程语言，它具有强大的内存安全性和并发性能。在 Rust 中，使用 `for` 循环来迭代集合（如数组、向量、切片等）中的元素或者执行某个操作一定次数。下面是 Rust 中 `for` 循环的基本语法和一些示例：
 
 
 
-## Chapter 10 - 函数, 方法 和 闭包
-## Chapter 11 - 模块
-## Chapter 12 - Cargo 
+#### 9.2.1 范围
 
-## Chapter 13 - 属性
+你还可以使用 `for` 循环来执行某个操作一定次数，可以使用 `..` 运算符创建一个范围，并在循环中使用它：
+
+```rust
+fn main() {
+    for i in 1..=5 {
+        println!("Iteration: {}", i);
+    }
+}
+```
+
+上述示例将打印数字 1 到 5，包括 5。范围使用 `1..=5` 表示，包括起始值 1 和结束值 5。
+
+
+
+#### 9.2.2 迭代器
+
+##### a.迭代集合元素
+
+在 Rust 中，使用 `for` 循环来迭代集合（例如数组或向量）中的元素非常简单。下面是一个示例，演示如何迭代一个整数数组中的元素：
+
+```rust
+fn main() {
+    let numbers = [1, 2, 3, 4, 5];
+
+    for number in numbers.iter() {
+        println!("Number: {}", number);
+    }
+}
+```
+
+在这个示例中，`numbers.iter()` 返回一个迭代器，通过 `for` 循环迭代器中的元素并打印每个元素的值。
+
+
+
+### 9.3 迭代器方法`map`,`filter`和`fold`
+
+
+
+除了使用 `for` 循环，你还可以使用 Rust 的迭代器方法来处理集合中的元素。这些方法包括 `map`、`filter`、`fold` 等，它们允许你进行更复杂的操作。
+
+#### 9.3.1
+
+例如：
+
+```rust
+fn main() {
+    let numbers = vec![1, 2, 3, 4, 5];
+    let doubled_numbers: Vec<_> = numbers.iter().map(|x| x * 2).collect();
+
+    for number in doubled_numbers.iter() {
+        println!("Doubled Number: {}", number);
+    }
+}
+```
+
+在上述示例中，我们使用了 `map` 方法将原始向量中的每个元素都乘以 2，然后使用 `collect` 方法将结果收集到一个新的向量中。
+
+### 9.4 while 循环 (While Loops)
+
+### 9.5 loop循环 
+
+### 9.6 match模式匹配
+
+### 9.7 if let 和 while let语法糖
+
+### 9.8 并发迭代器
+
+
+
+# Chapter 10 - 函数, 方法 和 闭包
+# Chapter 11 - 模块
+# Chapter 12 - Cargo 
+
+# Chapter 13 - 属性
 属性是应用于某些模块、crate 或项的元数据（metadata）。这元数据可以用来：
 
 - 条件编译代码
@@ -2810,20 +2869,20 @@ fn main() {
 #[attribute(value, value2, value3,value4, value5)]
 ```
 
-## Chapter 14 - 泛型
-## Chapter 15 - 文档
-## Chapter 16 - 作用域规则
-## Chapter 17 - 特性 trait
-## Chapter 18 - 使用 macro_rules! 来创建宏
-## Chapter 19 - 错误处理
-## Chapter 20 - 线程和管道
-## Chapter 21 - 面向对象编程
-## Chapter 22 - 测试
-## Chapter 23 - Unsafe
-## Chapter 24 - 时间处理
-## Chapter 25 - Polars入门
-## Chapter 26 - 时序数据库Clickhouse交互
-## Chapter 27 - Rust与内存结构
-## Chapter 28 - 标准库类型
-## Chapter 29 - Cerebro 引擎系统
-## Chapter 30 - Logger日志系统
+# Chapter 14 - 泛型
+# Chapter 15 - 文档
+# Chapter 16 - 作用域规则
+# Chapter 17 - 特性 trait
+# Chapter 18 - 使用 macro_rules! 来创建宏
+# Chapter 19 - 错误处理
+# Chapter 20 - 线程和管道
+# Chapter 21 - 面向对象编程
+# Chapter 22 - 测试
+# Chapter 23 - Unsafe
+# Chapter 24 - 时间处理
+# Chapter 25 - Polars入门
+# Chapter 26 - 时序数据库Clickhouse交互
+# Chapter 27 - Rust与内存结构
+# Chapter 28 - 标准库类型
+# Chapter 29 - Cerebro 引擎系统
+# Chapter 30 - Logger日志系统
