@@ -11,7 +11,7 @@
 
 
 ## Chapter 1 -  Rust 语言入门101
-### 1.1 在类Unix操作系统(Linux,FreeBSD,MacOS)上安装 rustup
+### 1.1 在类Unix操作系统(Linux,MacOS)上安装 rustup
 
 打开终端并输入下面命令：
 
@@ -28,7 +28,7 @@ Rust is installed now. Great!
 就算完成 Rust 安装了。
 
 ### 1.2 安装 C 语言编译器 [ 可选 ] 
-Rust 有的时候会依赖 libc 和链接器 linker。因此如果遇到了提示链接器无法执行的错误，你需要再手动安装一个 C 语言编译器：
+Rust 有的时候会依赖 libc 和链接器 linker， 比如PyTorch的C bindings的Rust版本tch.rs 就自然依赖C。因此如果遇到了提示链接器无法执行的错误，你需要再手动安装一个 C 语言编译器：
 
 **MacOS **：
 
@@ -40,7 +40,7 @@ $ xcode-select --install
 如果你使用 Ubuntu，则可安装 build-essential。
 其他 Linux 用户一般应按照相应发行版的文档来安装 gcc 或 clang。
 
-### 1.3 维护 Rust
+### 1.3 维护 Rust 工具链
 **更新Rust**
 
 ```bash
@@ -1805,6 +1805,17 @@ fn main() {
 }
 ```
 
+**执行结果：**
+
+```text
+inner: 2
+inner shadowed outer: 5
+outer: 1
+outer shadowed outer: a
+```
+
+
+
 ### 6.2 不可变变量
 
 在Rust中，你可以使用 `mut` 关键字来声明可变变量。可变变量与不可变变量相比，允许在绑定后修改它们的值。以下是一些常见的可变类型：
@@ -2577,29 +2588,49 @@ fn main() {
 
 ```
 
-接下来，FromStr trait 是用于从字符串解析出指定类型的 trait。它也是通用 trait，可以为任何类型实现。通过实现FromStr trait，类型可以使用from_str()方法从字符串中解析出自身。例如，在金融领域中，如果有一个表示股票价格的类型，可以实现FromStr trait以便从字符串解析出股票价格。
+接下来，FromStr trait 是用于从字符串解析出指定类型的 trait。它也是通用 trait，可以为任何类型实现。通过实现FromStr trait，类型可以使用from_str()方法从字符串中解析出自身。
+
+例如，在金融领域中，如果有一个表示股票价格的类型，可以实现FromStr trait以便从字符串解析出股票价格。
 
 ```rust
 use std::str::FromStr;
 
+// 自定义结构体，表示股票价格
 struct StockPrice {
     ticker_symbol: String,
     price: f64,
 }
 
+// 实现ToString trait，将StockPrice转换为字符串
+impl ToString for StockPrice {
+    // 将StockPrice结构体转换为字符串
+    fn to_string(&self) -> String {
+        format!("{}:{}", self.ticker_symbol, self.price)
+    }
+}
+
+// 实现FromStr trait，从字符串解析出StockPrice
 impl FromStr for StockPrice {
     type Err = ();
 
+    // 从字符串解析StockPrice
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // 将字符串s根据冒号分隔成两个部分
         let components: Vec<&str> = s.split(':').collect();
 
+        // 如果字符串不由两部分组成，那一定是发生错误了，返回错误
         if components.len() != 2 {
             return Err(());
         }
 
+        // 解析第一个部分为股票代码
         let ticker_symbol = String::from(components[0]);
+
+        // 解析第二个部分为价格
+        // 这里使用unwrap()用于简化示例，实际应用中可能需要更完备的错误处理
         let price = components[1].parse::<f64>().unwrap();
 
+        // 返回解析后的StockPrice
         Ok(StockPrice {
             ticker_symbol,
             price,
@@ -2609,15 +2640,151 @@ impl FromStr for StockPrice {
 
 fn main() {
     let price_string = "AAPL:150.64";
+
+    // 使用from_str()方法从字符串解析出StockPrice
     let stock_price = StockPrice::from_str(price_string).unwrap();
+
+    // 输出解析得到的StockPrice字段
     println!("Ticker Symbol: {}", stock_price.ticker_symbol); // 输出: "AAPL"
     println!("Price: {}", stock_price.price); // 输出: "150.64"
+
+    // 使用to_string()方法将StockPrice转换为字符串
+    let price_string_again = stock_price.to_string();
+
+    // 输出转换后的字符串
+    println!("Price String: {}", price_string_again); // 输出: "AAPL:150.64"
 }
+```
+
+**执行结果：**
+
+```shell
+Ticker Symbol: AAPL # from_str方法解析出来的股票代码信息
+Price: 150.64 # from_str方法解析出来的价格信息
+Price String: AAPL:150.64 # 和"let price_string = "AAPL:150.64";"又对上了
 ```
 
 
 
 ## Chapter 9 - 流程控制
+
+#### 9.1 if 条件语句
+
+在Rust中，`if` 语句用于条件控制，允许根据条件的真假来执行不同的代码块。Rust的`if`语句有一些特点和语法细节，以下是对Rust的`if`语句的介绍：
+
+1. **基本语法**：
+
+   ```rust
+   if condition {
+       // 如果条件为真（true），执行这里的代码块
+   } else {
+       // 如果条件为假（false），执行这里的代码块（可选）
+   }
+   ```
+
+   `condition` 是一个布尔表达式，根据其结果，决定执行哪个代码块。`else`部分是可选的，你可以选择不包括它。
+
+2. **多条件的`if`语句**：
+
+   你可以使用 `else if` 来添加多个条件分支，例如：
+
+   ```rust
+   if condition1 {
+       // 条件1为真时执行
+   } else if condition2 {
+       // 条件1为假，条件2为真时执行
+   } else {
+       // 所有条件都为假时执行
+   }
+   ```
+
+   这允许你在多个条件之间进行选择。
+
+3. **表达式返回值**：
+
+   在Rust中，`if`语句是一个表达式，意味着它可以返回一个值。这使得你可以将`if`语句的结果赋值给一个变量，如下所示：
+
+   ```rust
+   let result = if condition { 1 } else { 0 };
+   ```
+
+   这里，`result`的值将根据条件的真假来赋值为1或0。注意并不是布尔值。
+
+4. **模式匹配**：
+
+   你还可以使用`if`语句进行模式匹配，而不仅仅是布尔条件。例如，你可以匹配枚举类型或其他自定义类型的值。
+
+   ```rust
+   enum Status {
+       Success,
+       Error,
+   }
+   
+   let status = Status::Success;
+   
+   if let Status::Success = status {
+       // 匹配成功
+   } else {
+       // 匹配失败
+   }
+   ```
+
+总的来说，Rust的`if`语句提供了强大的条件控制功能，同时具有表达式和模式匹配的特性，使得它在处理不同类型的条件和场景时非常灵活和可读。
+
+现在我们来简单应用一下if语句，顺便预习for语句：
+
+```rust
+fn main() {
+    // 初始化投资组合的风险分数
+    let portfolio_risk_scores = vec![0.8, 0.6, 0.9, 0.5, 0.7];
+    let risk_threshold = 0.7; // 风险分数的阈值
+
+    // 计算高风险资产的数量
+    let mut high_risk_assets = 0;
+
+    for &risk_score in portfolio_risk_scores.iter() {
+        // 使用 if 条件语句判断风险分数是否超过阈值
+        if risk_score > risk_threshold {
+            high_risk_assets += 1;
+        }
+    }
+
+    // 基于高风险资产数量输出不同的信息
+    if high_risk_assets == 0 {
+        println!("投资组合风险水平低，没有高风险资产。");
+    } else if high_risk_assets <= 2 {
+        println!("投资组合风险水平中等，有少量高风险资产。");
+    } else {
+        println!("投资组合风险水平较高，有多个高风险资产。");
+    }
+}
+
+```
+
+**执行结果：**
+
+```text
+投资组合风险水平中等，有少量高风险资产。
+```
+
+#### 9.2 for 循环  (For Loops)
+
+#### 9.2.1 迭代器
+
+#### 9.2.2 范围
+
+#### 9.3 while 循环 (While Loops)
+
+#### 9.4 loop循环 
+
+#### 9.5 match模式匹配
+
+#### 9.6 if let 和 while let语法糖
+
+#### 9.7 并发迭代器
+
+
+
 ## Chapter 10 - 函数, 方法 和 闭包
 ## Chapter 11 - 模块
 ## Chapter 12 - Cargo 
