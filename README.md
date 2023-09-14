@@ -1020,7 +1020,7 @@ x 现在的值是：13
 一千可以表示为：1000
 ```
 
-**补充解释: 逻辑运算符:**
+##### 补充学习: 逻辑运算符
 
 逻辑运算中有三种基本操作：与(AND)、或(OR)、异或(XOR)，用来操作二进制位。
 
@@ -1050,7 +1050,7 @@ x 现在的值是：13
 
 这些逻辑运算在计算机中广泛应用于位操作和布尔代数中，它们用于创建复杂的逻辑电路、控制程序和数据处理。
 
-**补充解释: 移动运算符:**
+##### 补充学习: 移动运算符
 
 这涉及到位运算符的工作方式，特别是左移运算符(`<<`)和右移运算符(`>>`)。让我为你解释一下：
 
@@ -1325,7 +1325,7 @@ Day 10: 70.40
 
 在这个示例中，我们计算的是简单移动平均线(SMA)，窗口大小为5天。因此，SMA值是从第5天开始的，直到最后一天。在输出中，"Day 5" 对应着第5天的SMA值，"Day 6" 对应第6天的SMA值，以此类推。这是因为SMA需要一定数量的历史数据才能计算出第一个移动平均值，所以前几天的结果会是空的或不可用的。
 
-**补充解释: 范围设置**
+##### 补充学习: 范围设置
 
 `for i in 0..stock_prices.len() - window_size + 1` 这样写是为了创建一个迭代器，该迭代器将在股票价格数组上滑动一个大小为 `window_size` 的窗口，以便计算简单移动平均线(SMA)。
 
@@ -1397,7 +1397,7 @@ Day 9: 63.95
 Day 10: 66.30
 ```
 
-**补充解释:** **平滑因子alpha**
+##### 补充学习: 平滑因子alpha
 
 当计算指数移动平均线(EMA)时，需要使用一个平滑因子 `alpha`，这个因子决定了最近价格数据和前一EMA值的权重分配，它的计算方法是 `alpha = 2.0 / (window_size as f64 + 1.0)`。让我详细解释这句代码的含义：
 
@@ -1523,7 +1523,7 @@ let min_price = price_window.iter().cloned().fold(f64::INFINITY, f64::min);
    - `f64::NEG_INFINITY` 是一个负无穷大的初始值，用于确保任何实际的价格都会大于它。这是为了确保在计算最高价格时，如果时间窗口为空，结果将是负无穷大。
    - `f64::max` 是一个函数，用于计算两个 `f64` 类型的数值中的较大值。在 `fold` 过程中，它会比较当前最高价格和迭代器中的下一个元素，然后返回较大的那个。
 
-**补充解释: fold函数**
+#### 补充学习: fold函数
 
 `fold` 是一个常见的函数式编程概念，用于在集合(如数组、迭代器等)的元素上进行折叠(或归约)操作。它允许你在集合上进行迭代，并且在每次迭代中将一个累积值与集合中的元素进行某种操作，最终得到一个最终的累积结果。
 
@@ -2688,7 +2688,7 @@ fn main() {
 
 在这个示例中，我们使用了`Box::new`来创建一个包含1GB数据的堆分配的数组，这样就不会出现编译错误了。
 
-**补充解释：**
+##### 补充学习：into_boxed_slice
 
 `into_boxed_slice` 是一个用于将向量（`Vec`)转换为 `Box<[T]>` 的方法。
 
@@ -3119,7 +3119,7 @@ fn main() {
 
 总之，`Mutex`是Rust中一种非常重要的同步原语，用于保护共享数据免受并发访问的问题。通过正确地使用`Mutex`，你可以确保多线程程序的安全性和可靠性。
 
-**补充解释：lock方法**
+##### 补充学习：lock方法
 
 上面用到的 `lock` 方法是用来处理互斥锁（Mutex）的一种特殊函数。它的作用有点像一把“钥匙”，只有拿到这把钥匙的线程才能进入被锁住的房间，也就是临界区，从而安全地修改共享的数据。
 
@@ -4768,82 +4768,256 @@ fn main() {
 
 如同python支持泛型函数、高阶函数、匿名函数;C语言也支持泛型函数和函数指针一样，Rust中的函数支持许多进阶用法，这些用法可以帮助你编写更灵活、更高效的代码。以下是一些常见的函数进阶用法：
 
-1. **泛型函数（Generic Functions）**：
+#### 10.1.1 泛型函数（Generic Functions）：
 
-   - 使用泛型参数可以编写通用的函数，这些函数可以用于不同类型的数据。
-   - 通过在函数签名中使用尖括号 `<T>` 来声明泛型参数，并在函数体中使用这些参数来编写通用代码。
-   
+（在第14章，我们会进一步详细了解泛型函数）
+
+使用泛型参数可以编写通用的函数，这些函数可以用于不同类型的数据。
+
+通过在函数签名中使用尖括号 `<T>` 来声明泛型参数，并在函数体中使用这些参数来编写通用代码。
+
+以下是一个更简单的例子，演示如何编写一个泛型函数 `find_max` 来查找任何类型的元素列表中的最大值：
+
+```rust
+fn find_max_and_report_letters(list: &[&str]) -> Option<f64> {
+    if list.is_empty() {
+        return None; // 如果列表为空，返回 None
+    }
+
+    let mut max = None; // 用 Option 来存储最大值
+    let mut has_letters = false; // 用来标记是否包含字母
+
+    for item in list.iter() {
+        match item.parse::<f64>() {
+            Ok(number) => {
+                // 如果成功解析为浮点数
+                if max.is_none() || number > max.unwrap() {
+                    max = Some(number);
+                }
+            }
+            Err(_) => {
+                // 解析失败，表示列表中不小心混入了字母，无法比较。把这个bool传给has_letters.
+                has_letters = true;
+            }
+        }
+    }
+
+    if has_letters {
+        println!("列表中包含字母。");
+    }
+
+    max // 返回找到的最大值作为 Option<f64>
+}
+
+fn main() {
+    let data = vec!["3.5", "7.2", "1.8", "9.0", "4.7", "2.1", "A", "B"];
+    let max_number = find_max_and_report_letters(&data);
+
+    match max_number {
+        Some(max) => println!("最大的数字是: {}", max),
+        None => println!("没有找到有效的数字。"),
+    }
+}
+
+```
+
+**执行结果**：
+
+```
+列表中包含字母。
+最大的数字是: 9
+```
+
+
+
+在这个例子中，`find_max` 函数接受一个泛型切片 `list`，并在其中查找最大值。首先，它检查列表是否为空，如果是，则返回 `None`。然后，它遍历列表中的每个元素，将当前最大值与元素进行比较，如果找到更大的元素，就更新 `max`，并且如果有字母还会汇报给我们。最后，函数返回找到的最大值作为 `Option<&T>`。
+
+#### 10.1.2 高阶函数（Higher-Order Functions）：
+
+高阶函数（Higher-Order Functions）是一种编程概念，指可以接受其他函数作为参数或者返回函数作为结果的函数, 它在Rust中有广泛的支持和应用。
+
+以下是关于高阶函数在Rust中的详细介绍：
+
+1. **函数作为参数：** 在Rust中，您可以将函数作为参数传递给其他函数。这使得您可以编写通用的函数，以便它们可以操作不同类型的函数。通常，这样的函数接受一个函数闭包（closure）作为参数，然后在其内部使用这个闭包来完成一些操作。
+
    ```rust
-   fn get_max<T: PartialOrd>(list: &[T]) -> Option<&T> {
-       let mut max = None;
-       for item in list {
-           max = Some(match max {
-               Some(current_max) => if item > current_max { item } else { current_max },
-               None => item,
-           });
-       }
-       max
-   }
-   ```
-
-2. **高阶函数（Higher-Order Functions）**：
-
-   - 高阶函数是那些接受一个或多个函数作为参数或返回一个函数的函数。
-   - 在Rust中，你可以使用函数指针或闭包来实现高阶函数。
-   
-   ```rust
-   fn apply<F>(f: F, x: i32) -> i32
+   fn apply<F>(func: F, value: i32) -> i32
    where
        F: Fn(i32) -> i32,
    {
-       f(x)
-   }
-
-   let square = |x| x * x;
-   let result = apply(square, 5); // result 等于 25
-   ```
-
-3. **匿名函数（Anonymous Functions）**：
-
-   - 除了常规的函数定义，Rust还支持匿名函数，也就是闭包。
-   - 闭包可以在需要时定义，并且可以捕获其环境中的变量。
-   
-   ```rust
-   let add = |a, b| a + b;
-   let result = add(5, 3); // result 等于 8
-   ```
-
-4. **函数返回闭包（Returning Closures from Functions）**：
-
-   - 你可以从函数中返回闭包，这允许你创建可重用的函数生成器。
-   
-   ```rust
-   fn make_adder(x: i32) -> Box<dyn Fn(i32) -> i32> {
-       Box::new(move |y| x + y)
-   }
-
-   let add_five = make_adder(5);
-   let result = add_five(3); // result 等于 8
-   ```
-
-5. **函数指针（Function Pointers）**：
-
-   - 函数指针是指向函数的指针，它们允许你将函数作为参数传递给其他函数。
-   - 使用 `fn` 关键字定义函数指针类型，并将函数名作为参数传递。
-   
-   ```rust
-   fn call_with_function_pointer(f: fn(i32) -> i32, x: i32) -> i32 {
-       f(x)
+       func(value)
    }
    
    fn double(x: i32) -> i32 {
        x * 2
    }
    
-   let result = call_with_function_pointer(double, 5); // result 等于 10
+   fn main() {
+       let result = apply(double, 5);
+       println!("Result: {}", result);
+   }
    ```
 
-这些是Rust中一些函数的进阶用法，它们可以帮助你更好地利用Rust的强大功能来编写高效、灵活的代码。根据项目的需求和复杂性，你可以选择使用这些功能中的一些或全部。
+2. **返回函数：** 类似地，您可以编写函数，以函数作为它们的返回值。这种函数通常被称为工厂函数，因为它们返回其他函数的实例。
+
+   ```rust
+   fn create_multiplier(factor: i32) -> impl Fn(i32) -> i32 { //"impl Fn(i32) -> i32 " 是返回类型的标记，它用于指定闭包的类型签名。
+       move |x| x * factor
+   }
+   
+   fn main() {
+       let multiply_by_3 = create_multiplier(3);
+       let result = multiply_by_3(5);
+       println!("Result: {}", result); // 输出 15
+   }
+   ```
+
+   在上面的代码中，`move` 关键字用于定义一个闭包（匿名函数），这个闭包捕获了外部的变量 `factor`。在 Rust 中，闭包默认是对外部变量的借用（borrow），但在这个例子中，使用 `move` 关键字表示闭包会**拥有**捕获的变量 `factor` 的所有权：
+
+   1. `create_multiplier` 函数接受一个 `factor` 参数，它是一个整数。然后，它返回一个闭包，这个闭包接受一个整数 `x` 作为参数，并返回 `x * factor` 的结果。
+
+   2. 在 `main` 函数中，我们首先调用 `create_multiplier(3)`，这将返回一个闭包，这个闭包捕获了 `factor` 变量，其值为 3。
+
+   3. 然后，我们调用 `multiply_by_3(5)`，这实际上是调用了我们之前创建的闭包。闭包中的 `factor` 值是 3，所以 `5 * 3` 的结果是 15。
+
+   4. 最后，我们将结果打印到控制台，输出的结果是 `15`。
+
+   `move` 关键字的作用是将外部变量的所有权移动到闭包内部，这意味着闭包在内部拥有这个变量的控制权，不再依赖于外部的变量。这对于在闭包中捕获外部变量并在之后继续使用它们非常有用，尤其是当这些外部变量可能超出了其作用域时（如在异步编程中）。
+
+3. **迭代器和高阶函数：** Rust的标准库提供了丰富的迭代器方法，这些方法允许您对集合（如数组、向量、迭代器等）进行高级操作，例如`map`、`filter`、`fold`等。这些方法都可以接受函数闭包作为参数，使您能够非常灵活地处理数据。
+
+   ```rust
+   let numbers = vec![1, 2, 3, 4, 5];
+   
+   // 使用map高阶函数将每个数字加倍
+   let doubled_numbers: Vec<i32> = numbers.iter().map(|x| x * 2).collect();
+   
+   // 使用filter高阶函数选择偶数
+   let even_numbers: Vec<i32> = numbers.iter().filter(|x| x % 2 == 0).cloned().collect();
+   ```
+
+高阶函数使得在Rust中编写更具可读性和可维护性的代码变得更容易，同时也允许您以一种更加抽象的方式处理数据和逻辑。通过使用闭包和泛型，Rust的高阶函数提供了强大的工具，使得编程更加灵活和表达力强。
+
+#### 10.1.3 匿名函数（Anonymous Functions）：
+
+- 除了常规的函数定义，Rust还支持匿名函数，也就是闭包。
+- 闭包可以在需要时定义，并且可以捕获其环境中的变量。
+
+```rust
+let add = |a, b| a + b;
+let result = add(5, 3); // result 等于 8
+```
+
+#### 案例：计算投资组合的预期收益和风险
+
+在金融领域，高阶函数可以用来处理投资组合（portfolio）的各种分析和优化问题。以下是一个示例，演示如何使用高阶函数来计算投资组合的收益和风险。
+
+假设我们有一个投资组合，其中包含多个不同的资产，每个资产都有一个预期收益率和风险（标准差）率。我们可以定义一个高阶函数来计算投资组合的预期收益和风险，以及根据风险偏好优化资产配置。
+
+```rust
+struct Asset {
+    expected_return: f64,
+    risk: f64,
+}
+
+fn calculate_portfolio_metrics(assets: &[Asset], weights: &[f64]) -> (f64, f64) {
+    let expected_return: f64 = assets
+        .iter()
+        .zip(weights.iter())
+        .map(|(asset, weight)| asset.expected_return * weight)
+        .sum::<f64>();
+
+    let portfolio_risk: f64 = assets
+        .iter()
+        .zip(weights.iter())
+        .map(|(asset, weight)| asset.risk * asset.risk * weight * weight)
+        .sum::<f64>();
+
+    (expected_return, portfolio_risk)
+}
+
+fn optimize_with_algorithm<F>(_objective_function: F, initial_weights: Vec<f64>) -> Vec<f64>
+where
+    F: Fn(Vec<f64>) -> f64,
+{
+    // 这里简化为均匀分配权重的实现，实际中需要使用优化算法
+    initial_weights
+}
+
+fn optimize_portfolio(assets: &[Asset], risk_preference: f64) -> Vec<f64> {
+    let objective_function = |weights: Vec<f64>| -> f64 {
+        let (expected_return, portfolio_risk) = calculate_portfolio_metrics(&assets, &weights);
+        expected_return - risk_preference * portfolio_risk
+    };
+
+    let num_assets = assets.len();
+    let initial_weights = vec![1.0 / num_assets as f64; num_assets];
+    let optimized_weights = optimize_with_algorithm(objective_function, initial_weights);
+
+    optimized_weights
+}
+
+fn main() {
+    let asset1 = Asset {
+        expected_return: 0.08,
+        risk: 0.12,
+    };
+    let asset2 = Asset {
+        expected_return: 0.12,
+        risk: 0.18,
+    };
+
+    let assets = vec![asset1, asset2];
+    let risk_preference = 2.0;
+
+    let optimized_weights = optimize_portfolio(&assets, risk_preference);
+
+    println!("Optimal Portfolio Weights: {:?}", optimized_weights);
+}
+```
+
+在这个示例中，我们使用高阶函数来计算投资组合的预期收益和风险，并定义了一个优化函数作为闭包。通过传递不同的风险偏好参数，我们可以优化资产配置，以在风险和回报之间找到最佳平衡点。这是金融领域中使用高阶函数进行投资组合分析和优化的一个简单示例。实际中，会有更多复杂的模型和算法用于处理这类问题。
+
+#### 补充学习：zip方法
+
+在Rust中，`zip` 是一个迭代器适配器方法，它用于将两个迭代器逐个元素地配对在一起，生成一个新的迭代器，该迭代器返回一个元组，其中包含来自两个原始迭代器的对应元素。
+
+`zip` 方法的签名如下：
+
+```rust
+fn zip<U>(self, other: U) -> Zip<Self, U::IntoIter>
+where
+    U: IntoIterator;
+```
+
+这个方法接受另一个可迭代对象 `other` 作为参数，并返回一个 `Zip` 迭代器，该迭代器产生一个元组，其中包含来自调用 `zip` 方法的迭代器和 `other` 迭代器的对应元素。
+
+以下是一个简单的示例，演示如何使用 `zip` 方法：
+
+```rust
+fn main() {
+    let numbers = vec![1, 2, 3];
+    let letters = vec!['A', 'B', 'C'];
+
+    let zipped = numbers.iter().zip(letters.iter());
+
+    for (num, letter) in zipped {
+        println!("Number: {}, Letter: {}", num, letter);
+    }
+}
+```
+
+在这个示例中，我们有两个向量 `numbers` 和 `letters`，它们分别包含整数和字符。我们使用 `zip` 方法将它们配对在一起，创建了一个新的迭代器 `zipped`。然后，我们可以使用 `for` 循环遍历 `zipped` 迭代器，每次迭代都会返回一个包含整数和字符的元组，允许我们同时访问两个向量的元素。
+
+输出结果将会是：
+
+```
+Number: 1, Letter: A
+Number: 2, Letter: B
+Number: 3, Letter: C
+```
+
+`zip` 方法在处理多个迭代器并希望将它们一一匹配在一起时非常有用。这使得同时遍历多个集合变得更加方便。
 
 # Chapter 11 - 模块
 
