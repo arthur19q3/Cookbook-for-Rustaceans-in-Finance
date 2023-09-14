@@ -289,7 +289,7 @@ $ cargo check
     Finished dev [unoptimized + debuginfo] target(s) in 0.14 secs
 ```
 
-因为编译的耗时有时可以非常长，所以有的时候我们更改、修正代码后，并不会频繁执行cargo build来重构项目，而是使用 `cargo check`。
+因为编译的耗时有时可以非常长，所以此时我们更改或修正代码后，并不会频繁执行`cargo build`来重构项目，而是使用 `cargo check`。
 
 
 
@@ -431,9 +431,13 @@ fn get_value<'a>(val: &'a i32) -> &'a i32 {
 Rust的打印操作由 `std::fmt` 里面所定义的一系列宏 Macro 来处理，包括：
 
 `format!`：将格式化文本写到字符串。
+
 `print!`：与 format! 类似，但将文本输出到控制台(io::stdout)。
+
 `println!`: 与 print! 类似，但输出结果追加一个换行符。
+
 `eprint!`：与 print! 类似，但将文本输出到标准错误(io::stderr)。
+
 `eprintln!`：与 eprint! 类似，但输出结果追加一个换行符。
 
 #### 案例：折现计算器
