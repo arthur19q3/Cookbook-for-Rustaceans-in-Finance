@@ -36,7 +36,7 @@ Rust在量化金融中的关键特性有：
 
 
 
-# PART I 基础部分
+# PART I 基础部分 (Fundamentals of Rust Programming with the context of Quantitative Trading)
 
 # Chapter 1 -  Rust 语言入门101
 
@@ -8200,7 +8200,7 @@ Weekday: Sat
 >
 > ####  Chapter 22 -  文件处理
 >
-> ### PART II 进阶部分
+> ### PART II 量化实战（Rust Quantitative Trading in Actions）
 >
 > ####  Chapter 23 - Polars入门 
 >
