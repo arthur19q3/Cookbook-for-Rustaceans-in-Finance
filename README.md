@@ -1,8 +1,6 @@
 
 
-# Rust量化金融开发指南
-
-**Cookbook for Rustaceans in Finance**
+# Rust量化金融开发指南 / Cookbook for Rustaceans in Finance
 
 /Arthur Zhang
 
