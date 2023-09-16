@@ -8188,46 +8188,46 @@ Weekday: Sat
 
 
 
+# Upcoming Chapters
 
-Upcoming Chapter
-
-# Chapter 20 - Redis for Rust[待更新]
-
-# Chapter 21 - 爬虫[待更新]
-
-# Chapter 22 - 线程和管道[待更新]
-
-# Chapter 23 -  文件处理[待更新]
-
-# Chapter 24 - Polars入门 [待更新]
-
-# Chapter 25 - 时序数据库Clickhouse交互[待更新] 
-
-#  Chapter 26 - Unsafe[待更新] 
-
-# Chapter 27 - Cerebro 引擎系统[待更新]
-
-# Chapter 28 - Logger日志系统[待更新]
-
-# Chapter 29 - 文档[待更新]
-
-#  Chapter 30 - 测试[待更新]
-
-# Chapter 31 常见技术指标[待更新]
-
-# Chapter 32 统计模型[待更新]
-
-# Chapter 33 投资组合管理[待更新]
-
-# Chapter 34 量化计量经济学[待更新]
-
-# Chapter 35 限价指令簿[待更新]
-
-# Chapter 36 最优配置和执行[待更新]
-
-# Chapter 37 信息学、监管、风控[待更新]
-
-# Chapter 38 机器学习[待更新]
+>  Chapter 20 - Redis for Rust
+>
+>  Chapter 21 - 爬虫
+>
+>  Chapter 22 - 线程和管道
+>
+>  Chapter 23 -  文件处理
+>
+>  Chapter 24 - Polars入门 
+>
+>  Chapter 25 - 时序数据库Clickhouse交互
+>
+>   Chapter 26 - Unsafe
+>
+>  Chapter 27 - Cerebro 引擎系统
+>
+>  Chapter 28 - Logger日志系统
+>
+>  Chapter 29 - 文档
+>
+>   Chapter 30 - 测试
+>
+>  Chapter 31 常见技术指标
+>
+>  Chapter 32 统计模型
+>
+>  Chapter 33 投资组合管理
+>
+>  Chapter 34 量化计量经济学
+>
+>  Chapter 35 限价指令簿
+>
+>  Chapter 36 最优配置和执行
+>
+>  Chapter 37 信息学、监管、风控
+>
+>  Chapter 38 机器学习
+>
 
 
 
