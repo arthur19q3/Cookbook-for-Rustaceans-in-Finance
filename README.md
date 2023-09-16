@@ -287,7 +287,7 @@ $ ./target/debug/new_strategy
 Hello, world!
 ```
 
-cargo 还提供了一个名为 `cargo check` 的命令。该命令快速检查代码确保其可以编译：
+cargo 还提供了一te x t个名为 `cargo check` 的命令。该命令快速检查代码确保其可以编译：
 
 ```shell
 $ cargo check
@@ -5677,7 +5677,7 @@ pub mod stock {
             }
         }
 
-        // 其他股票相关方法
+        // 其他股票相关方te x t法
     }
 }
 
@@ -8123,7 +8123,7 @@ fn main() {
    ```text
    New time: SystemTime { tv_sec: 1694870769, tv_nsec: 705158112 }
    
-4. **格式化时间：****[测试未通过]** 若要将时间以特定格式显示为字符串，可以使用`chrono`库。
+4. **格式化时间：**若要将时间以特定格式显示为字符串，可以使用`chrono`库。
 
    ```rust
    use chrono::{DateTime, Utc, Duration, Datelike};
@@ -8137,9 +8137,10 @@ fn main() {
        println!("Formatted Time: {}", formatted_time);
    
        // 解析字符串为时间
-       let parsed_time = DateTime::parse_from_str("2023-09-16 14:30:00", "%Y-%m-%d %H:%M:%S")
-           .unwrap();
-       println!("Parsed Time: {}", parsed_time);
+       let datetime_str = "1983 Apr 13 12:09:14.274 +0800"; //注意rust最近更新后，这个输入string需要带时区信息。此处为+800代表东八区。
+       let format_str = "%Y %b %d %H:%M:%S%.3f %z";
+       let dt = DateTime::parse_from_str(datetime_str, format_str).unwrap();
+        println!("Parsed DateTime: {}", dt);
    
        // 进行日期和时间的计算
        let two_hours_from_now = now + Duration::hours(2);
@@ -8158,8 +8159,23 @@ fn main() {
        println!("Weekday: {:?}", weekday);
    }
    ```
+   **执行结果：**
+   
+   ```text
+   Formatted Time: 2023-09-16 13:47:10
+  Parsed DateTime: 1983-04-13 12:09:14.274 +08:00
+   Two Hours from Now: 2023-09-16 15:47:10.882155748 UTC
+   Date: 2023-09-16
+   Time: 13:47:10.882155748
+   Weekday: Sat
+   ```
+   
    
    5. **时区处理[未完成]**
+   
+   
+   
+   
    
    这些是Rust中进行时间处理的基本示例。您可以根据具体需求使用这些功能来执行更高级的时间操作，例如计算时间差、定时任务、处理时间戳等等。要了解更多关于时间处理的细节，请查阅Rust官方文档以及`chrono`库的文档。
 
