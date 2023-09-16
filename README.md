@@ -5410,7 +5410,182 @@ Number: 3, Letter: C
 
 `zip` 方法在处理多个迭代器并希望将它们一一匹配在一起时非常有用。这使得同时遍历多个集合变得更加方便。
 
-## 10.2 闭包进阶 [未完成]
+## 10.2 闭包进阶
+
+闭包是 Rust 中非常强大和灵活的概念，它们允许你将代码块封装为值，以便在程序中传递和使用。闭包通常用于以下几种场景：
+
+1. **匿名函数：** 闭包允许你创建匿名函数，它们可以在需要的地方定义和使用，而不必命名为函数。
+2. **捕获环境：** 闭包可以捕获其周围的变量和状态，可以在闭包内部引用外部作用域中的变量。
+3. **函数作为参数：** 闭包可以作为函数的参数传递，从而可以将自定义行为注入到函数中。
+4. **迭代器：** Rust 中的迭代器方法通常接受闭包作为参数，用于自定义元素处理逻辑。
+
+以下是闭包的一般语法：
+
+```rust
+|参数1, 参数2| -> 返回类型 {
+    // 闭包体
+    // 可以使用参数1、参数2以及捕获的外部变量
+}
+```
+
+闭包参数可以根据需要包含零个或多个，并且可以指定返回类型。闭包体是代码块，它定义了闭包的行为。
+
+**闭包的种类：**
+
+Rust 中有三种主要类型的闭包，分别是：
+1. **FnOnce：** 只能调用一次的闭包，通常会消耗（move）捕获的变量。
+2. **FnMut：** 可以多次调用的闭包，通常会可变地借用捕获的变量。
+3. **Fn：** 可以多次调用的闭包，通常会不可变地借用捕获的变量。
+
+闭包的种类由闭包的行为和捕获的变量是否可变来决定。
+
+**示例1：**
+
+```rust
+// 一个简单的闭包示例，计算两个数字的和
+let add = |x, y| x + y;
+let result = add(2, 3); // 调用闭包
+println!("Sum: {}", result);
+```
+
+**示例2：**
+
+```rust
+// 捕获外部变量的闭包示例
+let x = 10;
+let increment = |y| y + x;
+let result = increment(5); // 调用闭包
+println!("Result: {}", result);
+```
+
+**示例3：**
+
+```rust
+// 使用闭包作为参数的函数示例
+fn apply_operation<F>(a: i32, b: i32, operation: F) -> i32
+where
+    F: Fn(i32, i32) -> i32,
+{
+    operation(a, b)
+}
+
+let sum = apply_operation(2, 3, |x, y| x + y);
+let product = apply_operation(2, 3, |x, y| x * y);
+
+println!("Sum: {}", sum);
+println!("Product: {}", product);
+```
+
+**金融案例1：**
+
+假设我们有一个存储股票价格的向量，并希望计算这些价格的平均值。我们可以使用闭包来定义自定义的计算平均值逻辑。
+
+```rust
+fn main() {
+    let stock_prices = vec![50.0, 55.0, 60.0, 65.0, 70.0];
+
+    // 使用闭包计算平均值
+    let calculate_average = |prices: &[f64]| {
+        let sum: f64 = prices.iter().sum();
+        sum / (prices.len() as f64)
+    };
+
+    let average_price = calculate_average(&stock_prices);
+    println!("Average Stock Price: {:.2}", average_price);
+}
+```
+
+**金融案例2：**
+
+假设我们有一个银行应用程序，需要根据不同的账户类型计算利息。我们可以使用闭包作为参数传递到函数中，根据不同的账户类型应用不同的利息计算逻辑。
+
+```rust
+fn main() {
+    struct Account {
+        balance: f64,
+        account_type: &'static str,
+    }
+
+    let accounts = vec![
+        Account { balance: 1000.0, account_type: "Savings" },
+        Account { balance: 5000.0, account_type: "Checking" },
+        Account { balance: 20000.0, account_type: "Fixed Deposit" },
+    ];
+
+    // 使用闭包计算利息
+    let calculate_interest = |balance: f64, account_type: &str| -> f64 {
+        match account_type {
+            "Savings" => balance * 0.03,
+            "Checking" => balance * 0.01,
+            "Fixed Deposit" => balance * 0.05,
+            _ => 
+```
+
+
+
+接下来，让我们为 `FnOnce` 和 `FnMut` 也提供一个金融案例。
+
+**金融案例3（`FnOnce`）：**
+
+假设我们有一个账户管理应用程序，其中包含一个 `Transaction` 结构体表示交易记录。我们希望使用 `FnOnce` 闭包来处理每个交易，确保每笔交易只处理一次，以防止重复计算。
+
+```rust
+fn main() {
+    struct Transaction {
+        transaction_type: &'static str,
+        amount: f64,
+    }
+
+    let transactions = vec![
+        Transaction { transaction_type: "Deposit", amount: 100.0 },
+        Transaction { transaction_type: "Withdrawal", amount: 50.0 },
+        Transaction { transaction_type: "Deposit", amount: 200.0 },
+    ];
+
+    // 定义处理交易的闭包
+    let process_transaction = |transaction: Transaction| {
+        match transaction.transaction_type {
+            "Deposit" => println!("Processed deposit of ${:.2}", transaction.amount),
+            "Withdrawal" => println!("Processed withdrawal of ${:.2}", transaction.amount),
+            _ => println!("Invalid transaction type"),
+        }
+    };
+
+    // 使用FnOnce闭包处理交易，每笔交易只能处理一次
+    for transaction in transactions {
+        process_transaction(transaction);
+    }
+}
+```
+
+在这个示例中，我们有一个 `Transaction` 结构体表示交易记录，并定义了一个 `process_transaction` 闭包，用于处理每笔交易。由于 `FnOnce` 闭包只能调用一次，我们在循环中传递每个交易记录，并在每次迭代中使用 `process_transaction` 闭包处理交易。
+
+**金融案例4（`FnMut`）：**
+
+假设我们有一个股票监控应用程序，其中包含一个股票价格列表，我们需要周期性地更新股票价格。我们可以使用 `FnMut` 闭包来更新价格列表中的股票价格。
+
+```rust
+fn main() {
+    let mut stock_prices = vec![50.0, 55.0, 60.0, 65.0, 70.0];
+
+    // 定义更新股票价格的闭包
+    let mut update_stock_prices = |prices: &mut Vec<f64>| {
+        for price in prices.iter_mut() {
+            // 模拟市场波动，更新价格
+            let market_fluctuation = rand::random::<f64>() * 5.0 - 2.5;
+            *price += market_fluctuation;
+        }
+    };
+
+    // 使用FnMut闭包周期性地更新股票价格
+    for _ in 0..5 {
+        update_stock_prices(&mut stock_prices);
+        println!("Updated Stock Prices: {:?}", stock_prices);
+    }
+}
+```
+
+在这个示例中，我们有一个股票价格列表 `stock_prices`，并定义了一个 `update_stock_prices` 闭包，该闭包使用 `FnMut` 特性以可变方式更新价格列表中的股票价格。我们在循环中多次调用 `update_stock_prices` 闭包，模拟市场波动和价格更新。
 
 # Chapter 11 - 模块
 
