@@ -8206,17 +8206,17 @@ Weekday: Sat
 >
 > ####   Chapter 25 - Unsafe
 >
-> ####  Chapter 26 - 引擎系统
+> ####  Chapter 26 - 文档
 >
-> ####  Chapter 27 - 日志系统
+> ####   Chapter 27 - 测试
 >
-> ####  Chapter 28 - 文档
+> ####  Chapter 28 常见技术指标
 >
-> ####   Chapter 29 - 测试
+> #### Chapter 29 统计模型
 >
-> ####  Chapter 30 常见技术指标
+> ####  Chapter 30 - 引擎系统
 >
-> ####  Chapter 31 统计模型
+> ####  Chapter 31 - 日志系统
 >
 > ####  Chapter 32 投资组合管理
 >
@@ -8229,6 +8229,8 @@ Weekday: Sat
 > ####  Chapter 36 信息学、监管、风控
 >
 > ####  Chapter 37 机器学习
+>
+> #### 
 
 
 
