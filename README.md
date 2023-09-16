@@ -6,14 +6,6 @@
 
 /Arthur Zhang
 
-### 更新状态
-
-字数统计 : 206259.
-
-进度：更新至第18章。
-
-最近章节更新: 2023/09/16
-
 #  Preface
 
 首先，很荣幸向大家介绍这一点微小的工作。这本书是我经过一年的辛勤工作，整理了开发 Rust 全栈量化金融软件和策略的实践经验，旨在为那些希望进入或已经涉足量化金融领域的 Rust 程序员提供宝贵的参考和洞见。
@@ -8017,27 +8009,27 @@ fn main() {
 
 这只是一个简单的示例，展示了如何使用自定义宏来简化量化金融策略的实现。在实际的金融应用中，您可以使用更复杂的数据处理和策略规则。但这个示例演示了如何使用Rust的宏系统来增强代码的可读性和可维护性。
 
-# Chapter 19 - 时间处理
+# Chapter 19 - 时间处理[待更新]
 
-# Chapter 20 - Redis Client
+# Chapter 20 - Redis Client[待更新]
 
-# Chapter 21 - 爬虫
+# Chapter 21 - 爬虫[待更新]
 
-# Chapter 22 - 线程和管道
+# Chapter 22 - 线程和管道[待更新]
 
-# Chapter 23 -  文件处理
+# Chapter 23 -  文件处理[待更新]
 
-# Chapter 24 - Polars入门 
+# Chapter 24 - Polars入门 [待更新]
 
-# Chapter 25 - 时序数据库Clickhouse交互 
+# Chapter 25 - 时序数据库Clickhouse交互[待更新] 
 
-#  Chapter 26 - Unsafe 
+#  Chapter 26 - Unsafe[待更新] 
 
-# Chapter 27 - Cerebro 引擎系统
+# Chapter 27 - Cerebro 引擎系统[待更新]
 
-# Chapter 28 - Logger日志系统
+# Chapter 28 - Logger日志系统[待更新]
 
-# Chapter 29 - 文档
+# Chapter 29 - 文档[待更新]
 
-#  Chapter 30 - 测试
+#  Chapter 30 - 测试[待更新]
 
