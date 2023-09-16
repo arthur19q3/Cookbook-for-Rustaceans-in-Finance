@@ -8068,9 +8068,102 @@ fn main() {
 
 这只是一个简单的示例，展示了如何使用自定义宏来简化量化金融策略的实现。在实际的金融应用中，您可以使用更复杂的数据处理和策略规则。但这个示例演示了如何使用Rust的宏系统来增强代码的可读性和可维护性。
 
-# Chapter 19 - 时间处理[待更新]
+# Chapter 19 - 时间处理
 
-# Chapter 20 - Redis Client[待更新]
+在Rust中进行时间处理通常涉及使用标准库中的`std::time`模块。这个模块提供了一些结构体和函数，用于获取、表示和操作时间。
+
+以下是一些关于在Rust中进行时间处理的详细信息：
+
+1. **获取当前时间：** 要获取当前时间，可以使用`std::time::SystemTime`结构体和`SystemTime::now()`函数。
+
+   ```rust
+   use std::time::{SystemTime};
+   
+   fn main() {
+       let current_time = SystemTime::now();
+       println!("Current time: {:?}", current_time);
+   }
+   ```
+   **执行结果：**
+
+   ```text
+   Current time: SystemTime { tv_sec: 1694870535, tv_nsec: 559362022 }
+   ```
+
+2. **时间间隔：** 在Rust中，时间间隔通常由`std::time::Duration`结构体表示，它用于表示一段时间的长度。
+
+   ```rust
+   use std::time::Duration;
+   
+   fn main() {
+       let duration = Duration::new(5, 0); // 5秒
+       println!("Duration: {:?}", duration);
+   }
+   ```
+     **执行结果：**
+
+   ```text
+   Duration: 5s
+   
+3. **时间运算：** 时间间隔是可以直接拿来运算的，rust支持例如添加或减去时间间隔，以获取新的时间点。
+
+   ```rust
+   use std::time::{SystemTime, Duration};
+   
+   fn main() {
+       let current_time = SystemTime::now();
+       let five_seconds = Duration::new(5, 0);
+   
+       let new_time = current_time + five_seconds;
+       println!("New time: {:?}", new_time);
+   }
+   ```
+    **执行结果：**
+
+   ```text
+   New time: SystemTime { tv_sec: 1694870769, tv_nsec: 705158112 }
+   
+4. **格式化时间：****[测试未通过]** 若要将时间以特定格式显示为字符串，可以使用`chrono`库。
+
+   ```rust
+   use chrono::{DateTime, Utc, Duration, Datelike};
+   
+   fn main() {
+       // 获取当前时间
+       let now = Utc::now();
+   
+       // 将时间格式化为字符串
+       let formatted_time = now.format("%Y-%m-%d %H:%M:%S").to_string();
+       println!("Formatted Time: {}", formatted_time);
+   
+       // 解析字符串为时间
+       let parsed_time = DateTime::parse_from_str("2023-09-16 14:30:00", "%Y-%m-%d %H:%M:%S")
+           .unwrap();
+       println!("Parsed Time: {}", parsed_time);
+   
+       // 进行日期和时间的计算
+       let two_hours_from_now = now + Duration::hours(2);
+       println!("Two Hours from Now: {}", two_hours_from_now);
+   
+       // 获取日期的部分
+       let date = now.date_naive();
+       println!("Date: {}", date);
+   
+       // 获取时间的部分
+       let time = now.time();
+       println!("Time: {}", time);
+   
+       // 获取星期几
+       let weekday = now.weekday();
+       println!("Weekday: {:?}", weekday);
+   }
+   ```
+   
+   5. **时区处理[未完成]**
+   
+   这些是Rust中进行时间处理的基本示例。您可以根据具体需求使用这些功能来执行更高级的时间操作，例如计算时间差、定时任务、处理时间戳等等。要了解更多关于时间处理的细节，请查阅Rust官方文档以及`chrono`库的文档。
+
+# Chapter 20 - Redis for Rust[待更新]
 
 # Chapter 21 - 爬虫[待更新]
 
