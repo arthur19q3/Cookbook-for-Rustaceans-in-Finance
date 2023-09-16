@@ -7992,9 +7992,128 @@ fn main() {
 
 在这个主题中，我们定义了三个 trait：`Flight`、`Submersion` 和 `Superpower`，然后定义了一个超级特性 `Nezha`，它继承了这三个 trait。最后，我们为 `NezhaCharacter` 结构体实现了这三个 trait，并且还实现了 `Nezha` trait。通过这种方式，我们创建了一个能够上天入地并拥有超能力的角色，即哪吒。
 
-
-
 # Chapter 18 - 用 macro_rules! 创建自定义宏
+
+在Rust中，我们可以用`macro_rules!`创建自定义的宏。自定义宏允许你编写自己的代码生成器，以在编译时生成代码。以下是`macro_rules!`的基本语法和一些详解：
+
+```rust
+macro_rules! my_macro {
+    // 规则1
+    ($arg1:expr, $arg2:expr) => {
+        // 宏展开时执行的代码
+        println!("Argument 1: {:?}", $arg1);
+        println!("Argument 2: {:?}", $arg2);
+    };
+    // 规则2
+    ($arg:expr) => {
+        // 单个参数的情况
+        println!("Only one argument: {:?}", $arg);
+    };
+    // 默认规则
+    () => {
+        println!("No arguments provided.");
+    };
+}
+```
+
+上面的代码定义了一个名为`my_macro`的宏，它有三个不同的规则。每个规则由`=>`分隔，规则本身以模式（pattern）和展开代码（expansion code）组成。下面是对这些规则的解释：
+
+1. 第一个规则：`($arg1:expr, $arg2:expr) => { ... }`
+   - 这个规则匹配两个表达式作为参数，并将它们打印出来。
+
+2. 第二个规则：`($arg:expr) => { ... }`
+   - 这个规则匹配单个表达式作为参数，并将它打印出来。
+
+3. 第三个规则：`() => { ... }`
+   - 这是一个默认规则，如果没有其他规则匹配，它将被用于展开。
+
+现在，让我们看看如何使用这个自定义宏：
+
+```rust
+fn main() {
+    my_macro!(42); // 调用第二个规则，打印 "Only one argument: 42"
+    
+    my_macro!(10, "Hello"); // 调用第一个规则，打印 "Argument 1: 10" 和 "Argument 2: "Hello"
+    
+    my_macro!(); // 调用默认规则，打印 "No arguments provided."
+}
+```
+
+在上述示例中，我们通过`my_macro!`来调用自定义宏，根据传递的参数数量和类型，宏会选择匹配的规则来展开并执行相应的代码。
+
+总结一下，`macro_rules!`用于创建自定义宏，你可以定义多个规则来匹配不同的输入模式，并在展开时执行相应的代码。这使得Rust中的宏非常强大，可以用于代码重用和元编程。
+
+#### 案例：用宏来计算一组金融时间序列的平均值
+
+下面是一个用于量化金融的简单Rust宏的示例。这个宏用于计算一组金融时间序列的平均值，并将其用于简单的均线策略。
+
+首先，让我们定义一个包含金融时间序列的结构体：
+
+```rust
+struct TimeSeries {
+    data: Vec<f64>,
+}
+
+impl TimeSeries {
+    fn new(data: Vec<f64>) -> Self {
+        TimeSeries { data }
+    }
+}
+```
+
+接下来，我们将创建一个自定义宏，用于计算平均值并执行均线策略：
+
+```rust
+macro_rules! calculate_average {
+    ($ts:expr) => {
+        {
+            let sum: f64 = $ts.data.iter().sum();
+            let count = $ts.data.len() as f64;
+            sum / count
+        }
+    };
+}
+
+macro_rules! simple_moving_average_strategy {
+    ($ts:expr, $period:expr) => {
+        {
+            let avg = calculate_average!($ts);
+            let current_value = $ts.data.last().unwrap();
+            
+            if *current_value > avg {
+                "Buy"
+            } else {
+                "Sell"
+            }
+        }
+    };
+}
+```
+
+上述代码中，我们创建了两个宏：
+
+1. `calculate_average!($ts:expr)`：这个宏计算给定时间序列`$ts`的平均值。
+
+2. `simple_moving_average_strategy!($ts:expr, $period:expr)`：这个宏使用`calculate_average!`宏计算平均值，并根据当前值与平均值的比较生成简单的"Buy"或"Sell"策略信号。
+
+现在，让我们看看如何使用这些宏：
+
+```rust
+fn main() {
+    let prices = vec![100.0, 110.0, 120.0, 130.0, 125.0];
+    let time_series = TimeSeries::new(prices);
+
+    let period = 3;
+
+    let signal = simple_moving_average_strategy!(time_series, period);
+
+    println!("Signal: {}", signal);
+}
+```
+
+在上述示例中，我们创建了一个包含价格数据的时间序列`time_series`，并使用`simple_moving_average_strategy!`宏来生成交易信号。如果最后一个价格高于平均值，则宏将生成"Buy"信号，否则生成"Sell"信号。
+
+这只是一个简单的示例，展示了如何使用自定义宏来简化量化金融策略的实现。在实际的金融应用中，您可以使用更复杂的数据处理和策略规则。但这个示例演示了如何使用Rust的宏系统来增强代码的可读性和可维护性。
 
 # Chapter 19 - 爬虫
 
