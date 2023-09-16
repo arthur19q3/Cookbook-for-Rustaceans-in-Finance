@@ -36,6 +36,8 @@ Rust在量化金融中的关键特性有：
 
 
 
+# PART I 基础部分
+
 # Chapter 1 -  Rust 语言入门101
 
 开始之前我们不妨做一些简单的准备工作。
@@ -8188,45 +8190,47 @@ Weekday: Sat
 
 
 
-# Upcoming Chapters
+# Upcoming Chapters 
 
-> ####  Chapter 20 - Redis for Rust
+# 
+
+> ####  Chapter 20 - Redis和爬虫
 >
-> ####  Chapter 21 - 爬虫
+> ####  Chapter 21 - 线程和管道
 >
-> ####  Chapter 22 - 线程和管道
+> ####  Chapter 22 -  文件处理
 >
-> ####  Chapter 23 -  文件处理
+> ### PART II 进阶部分
 >
-> ####  Chapter 24 - Polars入门 
+> ####  Chapter 23 - Polars入门 
 >
-> ####  Chapter 25 - 时序数据库Clickhouse交互
+> ####  Chapter 24 - 时序数据库Clickhouse交互
 >
-> ####   Chapter 26 - Unsafe
+> ####   Chapter 25 - Unsafe
 >
-> ####  Chapter 27 - 引擎系统
+> ####  Chapter 26 - 引擎系统
 >
-> ####  Chapter 28 - 日志系统
+> ####  Chapter 27 - 日志系统
 >
-> ####  Chapter 29 - 文档
+> ####  Chapter 28 - 文档
 >
-> ####   Chapter 30 - 测试
+> ####   Chapter 29 - 测试
 >
-> ####  Chapter 31 常见技术指标
+> ####  Chapter 30 常见技术指标
 >
-> ####  Chapter 32 统计模型
+> ####  Chapter 31 统计模型
 >
-> ####  Chapter 33 投资组合管理
+> ####  Chapter 32 投资组合管理
 >
-> ####  Chapter 34 量化计量经济学
+> ####  Chapter 33 量化计量经济学
 >
-> ####  Chapter 35 限价指令簿
+> ####  Chapter 34 限价指令簿
 >
-> ####  Chapter 36 最优配置和执行
+> ####  Chapter 35 最优配置和执行
 >
-> ####  Chapter 37 信息学、监管、风控
+> ####  Chapter 36 信息学、监管、风控
 >
-> ####  Chapter 38 机器学习
+> ####  Chapter 37 机器学习
 
 
 
