@@ -8123,7 +8123,7 @@ fn main() {
    ```text
    New time: SystemTime { tv_sec: 1694870769, tv_nsec: 705158112 }
    
-4. **格式化时间：**若要将时间以特定格式显示为字符串，可以使用`chrono`库。
+4. **格式化时间**：若要将时间以特定格式显示为字符串，可以使用`chrono`库。
 
    ```rust
    use chrono::{DateTime, Utc, Duration, Datelike};
