@@ -4680,21 +4680,404 @@ fn main() {
 
 在这个示例中，我们创建了一个包含股票价格的时间序列数据，并使用`find_next_threshold`函数找到大于35.0的下一个价格。输出将会是"下一个大于35的价格是40"。如果没有找到大于阈值的价格，输出将会是"没有找到大于35的价格"。
 
-#### 9.3.4 fold 方法  [未完成]
+#### 9.3.4 fold 方法
 
-#### 9.3.5 collect 方法  [未完成]
+`fold` 是 Rust 标准库中 `Iterator` trait 提供的一个重要方法之一。它用于在迭代器中累积值，将一个初始值和一个闭包函数应用于迭代器的每个元素，并返回最终的累积结果。`fold` 方法的签名如下：
 
-## 9.4 while 循环 (While Loops)  [未完成]
+```rust
+fn fold<B, F>(self, init: B, f: F) -> B
+where
+    F: FnMut(B, Self::Item) -> B,
+```
 
-## 9.5 loop循环   [未完成]
+- `self` 是迭代器本身。
+- `init` 是一个初始值，用于累积操作的初始状态。
+- `f` 是一个闭包函数，它接受两个参数：累积值（初始值或上一次迭代的结果）和迭代器的下一个元素，然后返回新的累积值。
 
-## 9.6 match模式匹配  [未完成]
+`fold` 方法的执行过程如下：
 
-## 9.7 if let 和 while let语法糖  [未完成]
+1. 使用初始值 `init` 初始化累积值。
+2. 对于迭代器的每个元素，调用闭包函数 `f`，传递当前累积值和迭代器的元素。
+3. 将闭包函数的返回值更新为新的累积值。
+4. 重复步骤 2 和 3，直到迭代器中的所有元素都被处理。
+5. 返回最终的累积值。
 
-## 9.8 并发迭代器  [未完成]
+现在，让我们通过一个金融案例来演示 `fold` 方法的使用。假设我们有一组金融交易记录，每个记录包含交易类型（存款或提款）和金额。我们想要计算总存款和总提款的差值，以查看账户的余额。
+
+```rust
+struct Transaction {
+    transaction_type: &'static str,
+    amount: f64,
+}
+
+fn main() {
+    let transactions = vec![
+        Transaction { transaction_type: "Deposit", amount: 100.0 },
+        Transaction { transaction_type: "Withdrawal", amount: 50.0 },
+        Transaction { transaction_type: "Deposit", amount: 200.0 },
+        Transaction { transaction_type: "Withdrawal", amount: 75.0 },
+    ];
+
+    let initial_balance = 0.0; // 初始余额为零
+
+    let balance = transactions.iter().fold(initial_balance, |acc, transaction| {
+        match transaction.transaction_type {
+            "Deposit" => acc + transaction.amount,
+            "Withdrawal" => acc - transaction.amount,
+            _ => acc,
+        }
+    });
+
+    println!("Account Balance: ${:.2}", balance);
+}
+```
+
+在这个示例中，我们首先定义了一个 `Transaction` 结构体来表示交易记录，包括交易类型和金额。然后，我们创建了一个包含多个交易记录的 `transactions` 向量。我们使用 `fold` 方法来计算总存款和总提款的差值，以获取账户的余额。
+
+在 `fold` 方法的闭包函数中，我们根据交易类型来更新累积值 `acc`。如果交易类型是 "Deposit"，我们将金额添加到余额上，如果是 "Withdrawal"，则将金额从余额中减去。最终，我们打印出账户余额。
+
+#### 9.3.5 collect 方法 
+
+`collect` 是 Rust 中用于将迭代器的元素收集到一个集合（collection）中的方法。它是 `Iterator` trait 提供的一个重要方法。`collect` 方法的签名如下：
+
+```rust
+fn collect<B>(self) -> B
+where
+    B: FromIterator<Self::Item>,
+```
+
+- `self` 是迭代器本身。
+- `B` 是要收集到的集合类型，它必须实现 `FromIterator` trait，这意味着可以从迭代器的元素类型构建该集合类型。
+- `collect` 方法将迭代器中的元素转换为集合 `B` 并返回。
+
+`collect` 方法的工作原理如下：
+
+1. 创建一个空的集合 `B`，这个集合将用于存储迭代器中的元素。
+2. 对于迭代器的每个元素，将元素添加到集合 `B` 中。
+3. 返回集合 `B`。
+
+现在，让我们通过一个金融案例来演示 `collect` 方法的使用。假设我们有一组金融交易记录，每个记录包含交易类型（存款或提款）和金额。我们想要将所有存款记录收集到一个向量中，以进一步分析。
+
+```rust
+struct Transaction {
+    transaction_type: &'static str,
+    amount: f64,
+}
+
+fn main() {
+    let transactions = vec![
+        Transaction { transaction_type: "Deposit", amount: 100.0 },
+        Transaction { transaction_type: "Withdrawal", amount: 50.0 },
+        Transaction { transaction_type: "Deposit", amount: 200.0 },
+        Transaction { transaction_type: "Withdrawal", amount: 75.0 },
+    ];
+
+    // 使用 collect 方法将存款记录收集到一个向量中
+    let deposits: Vec<Transaction> = transactions
+        .iter()
+        .filter(|&transaction| transaction.transaction_type == "Deposit")
+        .cloned()
+        .collect();
+
+    println!("Deposit Transactions: {:?}", deposits);
+}
+```
+
+在这个示例中，我们首先定义了一个 `Transaction` 结构体来表示交易记录，包括交易类型和金额。然后，我们创建了一个包含多个交易记录的 `transactions` 向量。
+
+接下来，我们使用 `collect` 方法来将所有存款记录收集到一个新的 `Vec<Transaction>` 向量中。我们首先使用 `iter()` 方法将 `transactions` 向量转换为迭代器，然后使用 `filter` 方法筛选出交易类型为 "Deposit" 的记录。接着，我们使用 `cloned()` 方法来克隆这些记录，以便将它们收集到新的向量中。
+
+最后，我们打印出包含所有存款记录的向量。这样，我们就成功地使用 `collect` 方法将特定类型的交易记录收集到一个集合中，以便进一步分析或处理。
+
+## 9.4 while 循环 (While Loops) 
+
+`while` 循环是一种在 Rust 中用于重复执行代码块直到条件不再满足的控制结构。它的执行方式是在每次循环迭代之前检查一个条件表达式，只要条件为真，循环就会继续执行。一旦条件为假，循环将终止，控制流将跳出循环。
+
+以下是 `while` 循环的一般形式：
+
+```rust
+while condition {
+    // 循环体代码
+}
+```
+
+- `condition` 是一个布尔表达式，它用于检查循环是否应该继续执行。只要 `condition` 为真，循环体中的代码将被执行。
+- 循环体包含要重复执行的代码，通常会改变某些状态以最终使得 `condition` 为假，从而退出循环。
+
+下面是一个使用 `while` 循环的示例，演示了如何计算存款和提款的总和，直到交易记录列表为空：
+
+```rust
+struct Transaction {
+    transaction_type: &'static str,
+    amount: f64,
+}
+
+fn main() {
+    let mut transactions = vec![
+        Transaction { transaction_type: "Deposit", amount: 100.0 },
+        Transaction { transaction_type: "Withdrawal", amount: 50.0 },
+        Transaction { transaction_type: "Deposit", amount: 200.0 },
+        Transaction { transaction_type: "Withdrawal", amount: 75.0 },
+    ];
+
+    let mut total_balance = 0.0;
+
+    while !transactions.is_empty() {
+        let transaction = transactions.pop().unwrap(); // 从末尾取出一个交易记录
+        match transaction.transaction_type {
+            "Deposit" => total_balance += transaction.amount,
+            "Withdrawal" => total_balance -= transaction.amount,
+            _ => (),
+        }
+    }
+
+    println!("Account Balance: ${:.2}", total_balance);
+}
+```
+
+在这个示例中，我们定义了一个 `Transaction` 结构体来表示交易记录，包括交易类型和金额。我们创建了一个包含多个交易记录的 `transactions` 向量，并初始化 `total_balance` 为零。
+
+然后，我们使用 `while` 循环来迭代处理交易记录，直到 `transactions` 向量为空。在每次循环迭代中，我们从 `transactions` 向量的末尾取出一个交易记录，并根据交易类型更新 `total_balance`。最终，当所有交易记录都处理完毕时，循环将终止，我们打印出账户余额。
+
+这个示例演示了如何使用 `while` 循环来处理一个动态变化的数据集，直到满足退出条件为止。在金融领域，这种循环可以用于处理交易记录、账单或其他需要迭代处理的数据。
+
+## 9.5 loop循环  
+
+`loop` 循环是 Rust 中的一种基本循环结构，它允许你无限次地重复执行一个代码块，直到明确通过 `break` 语句终止循环。与 `while` 循环不同，`loop` 循环没有条件表达式来判断是否退出循环，因此它总是会无限循环，直到遇到 `break`。
+
+以下是 `loop` 循环的一般形式：
+
+```rust
+loop {
+    // 循环体代码
+    if condition {
+        break; // 通过 break 语句终止循环
+    }
+}
+```
+
+- 循环体中的代码块将无限次地执行，直到遇到 `break` 语句。
+- `condition` 是一个可选的条件表达式，当条件为真时，循环将终止。
+
+下面是一个使用 `loop` 循环的示例，演示了如何计算存款和提款的总和，直到输入的交易记录为空：
+
+```rust
+struct Transaction {
+    transaction_type: &'static str,
+    amount: f64,
+}
+
+fn main() {
+    let mut transactions = Vec::new();
+
+    loop {
+        let transaction_type: String = {
+            println!("Enter transaction type (Deposit/Withdrawal) or 'done' to finish:");
+            let mut input = String::new();
+            std::io::stdin().read_line(&mut input).expect("Failed to read line");
+            input.trim().to_string()
+        };
+
+        if transaction_type == "done" {
+            break; // 通过 break 语句终止循环
+        }
+
+        let amount: f64 = {
+            println!("Enter transaction amount:");
+            let mut input = String::new();
+            std::io::stdin().read_line(&mut input).expect("Failed to read line");
+            input.trim().parse().expect("Invalid input")
+        };
+
+        transactions.push(Transaction {
+            transaction_type: &transaction_type,
+            amount,
+        });
+    }
+
+    let mut total_balance = 0.0;
+
+    for transaction in &transactions {
+        match transaction.transaction_type {
+            "Deposit" => total_balance += transaction.amount,
+            "Withdrawal" => total_balance -= transaction.amount,
+            _ => (),
+        }
+    }
+
+    println!("Account Balance: ${:.2}", total_balance);
+}
+```
+
+在这个示例中，我们首先定义了一个 `Transaction` 结构体来表示交易记录，包括交易类型和金额。然后，我们创建了一个空的 `transactions` 向量，用于存储用户输入的交易记录。
+
+接着，我们使用 `loop` 循环来反复询问用户输入交易类型和金额，直到用户输入 "done" 为止。如果用户输入 "done"，则通过 `break` 语句终止循环。否则，我们将用户输入的交易记录添加到 `transactions` 向量中。
+
+最后，我们遍历 `transactions` 向量，计算存款和提款的总和，以获取账户余额，并打印出结果。
+
+这个示例演示了如何使用 `loop` 循环处理用户输入的交易记录，直到用户选择退出。在金融领域，这种循环可以用于交互式地记录和计算账户的交易信息。
 
 
+
+## 9.6 if let 和 while let语法糖  
+
+`if let` 和 `while let` 是 Rust 中的语法糖，用于简化模式匹配的常见用例，特别是用于处理 `Option` 和 `Result` 类型。它们允许你以更简洁的方式进行模式匹配，以处理可能的成功或失败情况。
+
+**1. if let 表达式：**
+
+`if let` 允许你检查一个值是否匹配某个模式，并在匹配成功时执行代码块。语法如下：
+
+```rust
+if let Some(value) = some_option {
+    // 匹配成功，使用 value
+} else {
+    // 匹配失败
+}
+```
+
+在上述示例中，如果 `some_option` 是 `Some` 包装的值，那么匹配成功，并且 `value` 将被绑定到 `Some` 中的值，然后执行相应的代码块。如果 `some_option` 是 `None`，则匹配失败，执行 `else` 块。
+
+**2. while let 循环：**
+
+`while let` 允许你重复执行一个代码块，直到匹配失败（通常是直到 `None`）。语法如下：
+
+```rust
+while let Some(value) = some_option {
+    // 匹配成功，使用 value
+}
+```
+
+在上述示例中，只要 `some_option` 是 `Some` 包装的值，就会重复执行代码块，并且 `value` 会在每次迭代中被绑定到 `Some` 中的值。一旦匹配失败（即 `some_option` 变为 `None`），循环将终止。
+
+**金融案例示例：**
+
+假设我们有一个金融应用程序，其中用户可以进行存款和提款操作，而每个操作都以 `Transaction` 结构体表示。我们将使用 `Option` 来模拟用户输入的交易，然后使用 `if let` 和 `while let` 处理这些交易。
+
+```rust
+struct Transaction {
+    transaction_type: &'static str,
+    amount: f64,
+}
+
+fn main() {
+    let mut account_balance = 0.0;
+
+    // 模拟用户输入的交易列表
+    let transactions = vec![
+        Some(Transaction { transaction_type: "Deposit", amount: 100.0 }),
+        Some(Transaction { transaction_type: "Withdrawal", amount: 50.0 }),
+        Some(Transaction { transaction_type: "Deposit", amount: 200.0 }),
+        None, // 用户结束输入
+    ];
+
+    for transaction in transactions {
+        if let Some(tx) = transaction {
+            match tx.transaction_type {
+                "Deposit" => {
+                    account_balance += tx.amount;
+                    println!("Deposited ${:.2}", tx.amount);
+                }
+                "Withdrawal" => {
+                    account_balance -= tx.amount;
+                    println!("Withdrawn ${:.2}", tx.amount);
+                }
+                _ => println!("Invalid transaction type"),
+            }
+        } else {
+            break; // 用户结束输入，退出循环
+        }
+    }
+
+    println!("Account Balance: ${:.2}", account_balance);
+}
+```
+
+在这个示例中，我们使用 `transactions` 向量来模拟用户输入的交易记录，包括存款和提款，以及一个 `None` 表示用户结束输入。然后，我们使用 `for` 循环和 `if let` 来处理每个交易记录，当遇到 `None` 时，循环终止。
+
+这个示例演示了如何使用 `if let` 和 `while let` 简化模式匹配，以处理可能的成功和失败情况，以及在金融应用程序中处理用户输入的交易记录。
+
+## 9.7 并发迭代器  
+
+在 Rust 中，通过标准库的 `rayon` crate，你可以轻松创建并发迭代器，用于在并行计算中高效处理集合的元素。`rayon` 提供了一种并发编程的方式，能够利用多核处理器的性能，特别适合处理大规模数据集。
+
+以下是如何使用并发迭代器的一般步骤：
+
+1. 首先，确保在 `Cargo.toml` 中添加 `rayon` crate 的依赖：
+
+   ```toml
+   [dependencies]
+   rayon = "1.5"
+   ```
+
+2. 导入 `rayon` crate：
+
+   ```rust
+   extern crate rayon;
+   use rayon::prelude::*;
+   ```
+
+3. 使用 `.par_iter()` 方法将集合转换为并发迭代器。然后，你可以调用 `.for_each()`、`.map()`、`.filter()` 等方法来进行并行操作。
+
+以下是一个金融案例，演示如何使用并发迭代器计算多个账户的总余额。每个账户包含一组交易记录，每个记录都有交易类型（存款或提款）和金额。我们将并行计算每个账户的总余额，然后计算所有账户的总余额。
+
+```rust
+extern crate rayon;
+use rayon::prelude::*;
+
+struct Transaction {
+    transaction_type: &'static str,
+    amount: f64,
+}
+
+struct Account {
+    transactions: Vec<Transaction>,
+}
+
+impl Account {
+    fn new(transactions: Vec<Transaction>) -> Self {
+        Account { transactions }
+    }
+
+    fn calculate_balance(&self) -> f64 {
+        self.transactions
+            .par_iter() // 将迭代器转换为并发迭代器
+            .map(|transaction| {
+                match transaction.transaction_type {
+                    "Deposit" => transaction.amount,
+                    "Withdrawal" => -transaction.amount,
+                    _ => 0.0,
+                }
+            })
+            .sum() // 并行计算总和
+    }
+}
+
+fn main() {
+    let account1 = Account::new(vec![
+        Transaction { transaction_type: "Deposit", amount: 100.0 },
+        Transaction { transaction_type: "Withdrawal", amount: 50.0 },
+        Transaction { transaction_type: "Deposit", amount: 200.0 },
+    ]);
+
+    let account2 = Account::new(vec![
+        Transaction { transaction_type: "Deposit", amount: 300.0 },
+        Transaction { transaction_type: "Withdrawal", amount: 75.0 },
+    ]);
+
+    let total_balance: f64 = vec![&account1, &account2]
+        .par_iter()
+        .map(|account| account.calculate_balance())
+        .sum(); // 并行计算总和
+
+    println!("Total Account Balance: ${:.2}", total_balance);
+}
+```
+
+在这个示例中，我们定义了 `Transaction` 结构体表示交易记录和 `Account` 结构体表示账户。每个账户包含一组交易记录。在 `Account` 结构体上，我们实现了 `calculate_balance()` 方法，该方法使用并发迭代器计算账户的总余额。
+
+在 `main` 函数中，我们创建了两个账户 `account1` 和 `account2`，然后将它们放入一个向量中。接着，我们使用并发迭代器来并行计算每个账户的余额，并将所有账户的总余额相加，最后打印出结果。
+
+这个示例演示了如何使用 `rayon` crate 的并发迭代器来高效处理金融应用程序中的数据，特别是在处理多个账户时，可以充分利用多核处理器的性能。
 
 # Chapter 10 - 函数, 方法 和 闭包
 
@@ -6963,7 +7346,7 @@ One or more strategies failed. Aborting!
 
 # Chapter 17 - 特性 (trait) 详解
 
-### 17.1 通过dyn关键词轻松实现多态性
+## 17.1 通过dyn关键词轻松实现多态性
 
 在Rust中，dyn 关键字在 Rust 中用于表示和关联特征（associated trait）相关的方法调用，在运行时进行动态分发（runtime dynamic dispatch）。因此`dyn` 关键字可以用于实现动态多态性（也称为运行时多态性）。
 
@@ -7006,7 +7389,7 @@ fn main() {
 
 在这个示例中，我们定义了一个特征 `Animal`，并为其实现了两个不同的结构体 `Dog` 和 `Cat`。然后，我们在 `main` 函数中创建了一个包含实现 `Animal` 特征的对象的 `Vec`，并使用 `Box` 包装它们以实现动态多态性。最后，我们使用 `for` 循环迭代容器中的每个对象，并调用 `speak` 方法，根据对象的实际类型分别输出不同的声音。
 
-### 17.2 派生(\#[derive])
+## 17.2 派生(\#[derive])
 
 在 Rust 中，通过 `#[derive]` 属性，编译器可以自动生成某些 traits 的基本实现，这些 traits 通常与 Rust 中的常见编程模式和功能相关。下面是关于不同 trait 的短例子：
 
@@ -7281,11 +7664,11 @@ fn main() {
 
 这个示例演示了如何使用 `Debug` trait 和 `{:?}` 格式化器来格式化一个值。
 
-### 17.3 迭代器 (Iterator Trait)
+## 17.3 迭代器 (Iterator Trait)
 
-### 17.4 Clone特性(Clone Trait)
+## 17.4 Clone特性(Clone Trait)
 
-### 17.5 超级特性(Super Trait)
+## 17.5 超级特性(Super Trait)
 
 # Chapter 18 - 用 macro_rules! 创建自定义宏
 
