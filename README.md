@@ -6,6 +6,8 @@
 
 /Arthur Zhang
 
+# 更新状态
+
 word count : 206259.
 
 status：更新至第18章。
