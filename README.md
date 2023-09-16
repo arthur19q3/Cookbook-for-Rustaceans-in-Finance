@@ -6,7 +6,15 @@
 
 /Arthur Zhang
 
-#  Introduction
+#  Preface
+
+首先，荣幸向大家介绍一点微小的工作。这本书是我经过一年的辛勤工作，整理了开发 Rust 全栈量化金融软件和策略的实践经验，旨在为那些希望进入或已经涉足量化金融领域的 Rust 程序员提供宝贵的参考和洞见。
+
+这本书的初衷是为了向读者提供核心原理和主要步骤的指导，而不是枯燥的详细说明。在已经开源的前 16 章中，你将会找到大量来自实际生产环境的示例代码，这些代码都是极简的工作示例，真实地反映了金融领域中的挑战和 Rust 语言的强大特性。希望些示例也会激发你的灵感，让你更加熟练地运用 Rust 来解决金融领域的问题。
+
+我要特别感谢 Rust 社区和量化金融业界的朋友们，你们的支持和反馈对本书的成长起到了不可或缺的作用。我欢迎各位的批评指正，也愿意戮力与诸位为量化金融领域构建一个更加强大、更加安全、更加高效的开发生态。
+
+# Introduction
 
 在量化金融领域中，编程语言的选择正在逐年变得重要，而Rust则是一种逐渐受到青睐的编程语言。它独特的特性使其非常适合于在这一领域开发可靠且高效的软件解决方案。
 
@@ -509,7 +517,7 @@ fn calculate_present_value(principal: f64, discount_rate: f64, time_period: u32)
 现值为：1388.89
 ```
 
-当我们输入一个负的折现率后, 我们用eprint!和eprintln!预先编辑好的错误信息出现了:
+当我们输入一个负的折现率后, 我们用eprint!和eprintln!预先编辑好的错误信息就出现了:
 
 ```shell
 折现计算器
@@ -1827,7 +1835,7 @@ fn main() {
 
 
 
-# Chapter 5 - 标准库类型 (分离)
+# Chapter 5 - 标准库类型 [本章待拆分]
 
 当提到 Rust 的标准库时，确实包含了许多自定义类型，它们在原生数据类型的基础上进行了扩展和增强，为 Rust 程序提供了更多的功能和灵活性。以下是一些常见的自定义类型和类型包装器：
 
@@ -6385,7 +6393,87 @@ fn main() -> std::io::Result<()> {
 
 在上述示例中，`FileHandler`结构实现了`Drop` trait，在`drop`方法中关闭文件。当`file_handler`对象离开作用域时，`Drop` trait的`drop`方法会被自动调用，关闭文件。这确保了文件资源的正确释放。
 
-### 15.3 生命周期详解（未完成）
+### 15.3 生命周期（Lifetimes）详解 [未完成]
+
+生命周期（Lifetimes）是Rust中一个非常重要的概念，用于确保内存安全和防止数据竞争。在Rust中，生命周期指定了引用的有效范围，帮助编译器检查引用是否合法。在进阶Rust中，我们将深入探讨生命周期的高级概念和应用。
+
+在进阶Rust中，我们将深入探讨生命周期的高级概念和应用。
+
+#### **15.3.1 生命周期的自动推断和省略**
+
+其实Rust在很多情况下，甚至式大部分情况下，可以自动推断生命周期，但有时需要显式注解来帮助编译器理解引用的生命周期。以下是一些关于Rust生命周期自动推断的示例和解释。
+
+```rust
+fn get_length(s: &str) -> usize {
+    s.len()
+}
+
+fn main() {
+    let text = String::from("Hello, Rust!");
+    let length = get_length(&text);
+    println!("Length: {}", length);
+}
+
+```
+
+在上述示例中，`get_length`函数接受一个`&str`引用作为参数，并没有显式指定生命周期。Rust会自动推断引用的生命周期，使其与调用者的生命周期相符。在这个情况下，函数参数的生命周期与调用者有关，具体来说：
+
+1. **调用者**是指调用`get_length`函数的代码块，即`main`函数。在这个上下文中，调用者是`main`函数。
+2. `text`是在`main`函数中创建的，它的生命周期从它的创建点一直到它超出了作用域为止，也就是`main`函数的末尾。所以，`text`的生命周期是与`main`函数的生命周期相同。
+3. 当你调用`get_length(&text)`时，你将`text`的引用传递给了`get_length`函数，这个引用的生命周期也与`main`函数的生命周期相同，因为它在`main`函数内部被创建和使用。
+
+因此，`get_length`函数的参数`s`的生命周期与调用者`main`函数的生命周期是一致的，Rust会自动推断出这个生命周期，而不需要显式指定。这是因为引用的生命周期通常与引用的变量的生命周期相关联，这种情况下的生命周期推断是Rust的一项方便的特性。所以此时Rust会自动推断出引用的生命周期，因为函数参数和返回值的生命周期通常与调用者相同。
+
+但是在这个案例中，你需要显式声明生命周期参数来使代码合法：
+
+```rust
+fn shorter<'a>(x: &'a str, y: &'a str, z: &'a str) -> &str {
+    if x.len() <= y.len() && x.len() <= z.len() {
+        x
+    } else if y.len() <= x.len() && y.len() <= z.len() {
+        y
+    } else {
+        z
+    }
+}
+
+fn main() {
+    let string1 = String::from("abcd");
+    let string2 = "xyz";
+    let string3 = "lmnop";
+
+    let result = shorter(string1.as_str(), string2, string3);
+    println!("The shortest string is {}", result);
+}
+
+```
+
+**执行结果：**
+
+```rust
+error[E0106]: missing lifetime specifier
+ --> src/main.rs:1:55
+  |
+1 | fn shorter<'a>(x: &'a str, y: &'a str, z: &'a str) -> &str {
+  |                   -------     -------     -------     ^ expected named lifetime parameter
+  |
+  = help: this function's return type contains a borrowed value with an elided lifetime, but the lifetime cannot be derived from the arguments
+help: consider using the `'a` lifetime
+  |
+1 | fn shorter<'a>(x: &'a str, y: &'a str, z: &'a str) -> &'a str {
+  |                                                        ++
+
+For more information about this error, try `rustc --explain E0106`.
+error: could not compile `book_test` (bin "book_test") due to previous error
+```
+
+#### 
+
+#### 15.3.2 生命周期和结构体
+
+#### 15.3.3 生命周期和方法
+
+
 
 
 
