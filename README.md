@@ -7282,7 +7282,7 @@ fn main() {
 }
 ```
 
-在上面的示例中，我们有一个包含 `Option<i32>` 值的 `values` 向量。我们使用 `filter_map` 方法来过滤掉 `None` 值并提取 `Some` 值，最终将结果收集到一个新的 `Vec<i32>` 中。这样，我们就得到了一个只包含非空值的新集合 `filtered_values`。
+在上面的示例中，我们有一个包含 `Option<i32>` 值的 `values` 向量。我们使用 `filter_map` 方法来过滤掉 `None` 值并提取 `Some` 值，最终将结果收集到一个新的 `Vec<i32>` 中。这样，我们就得到了一个只包含非空值的新集合 `filtered_values`。 
 
 #### 案例： 数据清洗
 
