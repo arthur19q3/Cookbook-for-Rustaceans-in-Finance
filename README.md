@@ -7915,7 +7915,7 @@ trait SuperTrait: Trait1 + Trait2 + Trait3 {
 
 这里，`SuperTrait` 是一个超级特性，它继承了 `Trait1`、`Trait2` 和 `Trait3` 这三个 trait 的所有方法和功能。
 
-好的，让我们将上面的示例重新构建为一个主题，其中能够上天入地的角色是哪吒：
+好的，让我们将上面的示例构建为某封神题材游戏的角色，一个能够上天入地的角色，哪吒三太子：
 
 ```rust
 // 定义三个 trait：Flight、Submersion 和 Superpower
