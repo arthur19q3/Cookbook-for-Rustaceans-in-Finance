@@ -7901,9 +7901,98 @@ fn main() {
 
 在这个示例中，我们定义了一个名为 `Dog` 的结构体，用来表示狗的属性。然后，我们创建了一个包含狗对象的向量 `dogs`。接下来，我们使用 `iter()` 方法将它转换成一个迭代器，并使用 `for` 循环遍历整个迭代器，使用 `take` 方法提取前两只狗，并使用 `skip` 方法跳过前两只狗来进行迭代。与之前一样，我们在使用 `take` 和 `skip` 方法后，使用 `clone()` 创建了新的迭代器以便重新使用。
 
-## 17.4 Clone特性(Clone Trait)
-
 ## 17.5 超级特性(Super Trait)
+
+Rust 中的超级特性（Super Trait）是一种特殊的 trait，它是其他多个 trait 的超集。它可以用来表示一个 trait 包含或继承了其他多个 trait 的所有功能，从而允许你以更抽象的方式来处理多个 trait 的实现。超级特性使得代码更加模块化、可复用和抽象化。
+
+超级特性的语法很简单，只需在 trait 定义中使用 `+` 运算符来列出该 trait 继承的其他 trait 即可。例如：
+
+```rust
+trait SuperTrait: Trait1 + Trait2 + Trait3 {
+    // trait 的方法定义
+}
+```
+
+这里，`SuperTrait` 是一个超级特性，它继承了 `Trait1`、`Trait2` 和 `Trait3` 这三个 trait 的所有方法和功能。
+
+好的，让我们将上面的示例重新构建为一个主题，其中能够上天入地的角色是哪吒：
+
+```rust
+// 定义三个 trait：Flight、Submersion 和 Superpower
+trait Flight {
+    fn fly(&self);
+}
+
+trait Submersion {
+    fn submerge(&self);
+}
+
+trait Superpower {
+    fn use_superpower(&self);
+}
+
+// 定义一个超级特性 Nezha，继承了 Flight、Submersion 和 Superpower 这三个 trait
+trait Nezha: Flight + Submersion + Superpower {
+    fn introduce(&self) {
+        println!("我是哪吒三太子！");
+    }
+
+    fn describe_weapon(&self);
+}
+
+// 实现 Flight、Submersion 和 Superpower trait
+struct NezhaCharacter;
+impl Flight for NezhaCharacter {
+    fn fly(&self) {
+        println!("哪吒在天空翱翔，驾驭风火轮飞行。");
+    }
+}
+
+impl Submersion for NezhaCharacter {
+    fn submerge(&self) {
+        println!("哪吒可以潜入水中，以莲花根和宝莲灯为助力。");
+    }
+}
+
+impl Superpower for NezhaCharacter {
+    fn use_superpower(&self) {
+        println!("哪吒拥有火尖枪、风火轮和宝莲灯等神器，可以操控火焰和风，战胜妖魔。");
+    }
+}
+
+// 实现 Nezha trait
+impl Nezha for NezhaCharacter {
+    fn describe_weapon(&self) {
+        println!("哪吒的法宝包括火尖枪、风火轮和宝莲灯。");
+    }
+}
+
+fn main() {
+    let nezha = NezhaCharacter;
+    nezha.introduce();
+    nezha.fly();
+    nezha.submerge();
+    nezha.use_superpower();
+    nezha.describe_weapon();
+}
+
+```
+
+**执行结果：**
+
+```text
+我是哪吒三太子！
+哪吒在天空翱翔，驾驭风火轮飞行。
+哪吒可以潜入水中，以莲花根和宝莲灯为助力。
+哪吒拥有火尖枪、风火轮和宝莲灯等神器，可以操控火焰和风，战胜妖魔。
+哪吒的法宝包括火尖枪、风火轮和宝莲灯。
+
+
+```
+
+在这个主题中，我们定义了三个 trait：`Flight`、`Submersion` 和 `Superpower`，然后定义了一个超级特性 `Nezha`，它继承了这三个 trait。最后，我们为 `NezhaCharacter` 结构体实现了这三个 trait，并且还实现了 `Nezha` trait。通过这种方式，我们创建了一个能够上天入地并拥有超能力的角色，即哪吒。
+
+
 
 # Chapter 18 - 用 macro_rules! 创建自定义宏
 
