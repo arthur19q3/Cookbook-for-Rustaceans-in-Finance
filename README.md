@@ -10,7 +10,7 @@
 
 首先，很荣幸向大家介绍这一点微小的工作。这本书是我经过一年的辛勤工作，整理了开发 Rust 全栈量化金融软件和策略的实践经验，旨在为那些希望进入或已经涉足量化金融领域的 Rust 程序员提供宝贵的参考和洞见。
 
-这本书的初衷是为了向读者提供核心原理和主要步骤的指导，而不是枯燥的详细说明。在已经开源的前 16 章中，你将会找到大量来自实际生产环境的示例代码，这些代码都是极简的工作示例，真实地反映了金融领域中的挑战和 Rust 语言的强大特性。希望些示例也会激发你的灵感，让你更加熟练地运用 Rust 来解决金融领域的问题。
+这本书的初衷是为了向读者提供核心原理和主要步骤的指导，而不是枯燥的详细说明。在已经开源的前 17 章中，你将会找到大量来自实际生产环境的示例代码，这些代码都是极简的工作示例，真实地反映了金融领域中的挑战和 Rust 语言的强大特性。希望些示例也会激发你的灵感，让你更加熟练地运用 Rust 来解决金融领域的问题。
 
 我要特别感谢 Rust 社区和量化金融业界的朋友们，你们的支持和反馈对本书的成长起到了不可或缺的作用。我欢迎各位的批评指正，也愿意戮力与诸位为量化金融领域构建一个更加强大、更加安全、更加高效的开发生态。
 
@@ -7840,6 +7840,66 @@ fn main() {
 这个示例演示了如何使用 `Debug` trait 和 `{:?}` 格式化器来格式化一个值。
 
 ## 17.3 迭代器 (Iterator Trait)
+
+迭代器（Iterator Trait）是 Rust 中用于迭代集合元素的标准方法。它是一个非常强大和通用的抽象，用于处理数组、向量、哈希表等不同类型的集合。迭代器使你能够以统一的方式遍历和处理这些集合的元素。
+
+比如作者乡下的家中养了18条小狗，需要向客人挨个介绍，作者就可以使用迭代器来遍历和处理狗的集合，就像下面的示例一样：
+
+```rust
+// 定义一个狗的结构体
+struct Dog {
+    name: String,
+    breed: String,
+}
+
+fn main() {
+    // 创建一个狗的集合，使用十八罗汉的名字命名
+    let dogs = vec![
+        Dog { name: "张飞".to_string(), breed: "吉娃娃".to_string() },
+        Dog { name: "关羽".to_string(), breed: "贵宾犬".to_string() },
+        Dog { name: "刘备".to_string(), breed: "柴犬".to_string() },
+        Dog { name: "赵云".to_string(), breed: "边境牧羊犬".to_string() },
+        Dog { name: "马超".to_string(), breed: "比熊犬".to_string() },
+        Dog { name: "黄忠".to_string(), breed: "拉布拉多".to_string() },
+        Dog { name: "吕布".to_string(), breed: "杜宾犬".to_string() },
+        Dog { name: "貂蝉".to_string(), breed: "杰克罗素梗".to_string() },
+        Dog { name: "王异".to_string(), breed: "雪纳瑞".to_string() },
+        Dog { name: "诸葛亮".to_string(), breed: "比格犬".to_string() },
+        Dog { name: "庞统".to_string(), breed: "波士顿梗".to_string() },
+        Dog { name: "法正".to_string(), breed: "西高地白梗".to_string() },
+        Dog { name: "孙尚香".to_string(), breed: "苏格兰梗".to_string() },
+        Dog { name: "周瑜".to_string(), breed: "斗牛犬".to_string() },
+        Dog { name: "大乔".to_string(), breed: "德国牧羊犬".to_string() },
+        Dog { name: "小乔".to_string(), breed: "边境牧羊犬".to_string() },
+        Dog { name: "黄月英".to_string(), breed: "西施犬".to_string() },
+        Dog { name: "孟获".to_string(), breed: "比格犬".to_string() },
+    ];
+
+    // 创建一个迭代器，用于遍历狗的集合
+    let mut dog_iterator = dogs.iter();
+
+    // 使用 for 循环遍历迭代器并打印每只狗的信息
+    println!("遍历狗的集合：");
+    for dog in &dogs {
+        println!("名字: {}, 品种: {}", dog.name, dog.breed);
+    }
+
+    // 使用 take 方法提取前两只狗并打印
+    println!("\n提取前两只狗：");
+    for dog in dog_iterator.clone().take(2) {
+        println!("名字: {}, 品种: {}", dog.name, dog.breed);
+    }
+
+    // 使用 skip 方法跳过前两只狗并打印剩下的狗的信息
+    println!("\n跳过前两只狗后的狗：");
+    for dog in dog_iterator.skip(2) {
+        println!("名字: {}, 品种: {}", dog.name, dog.breed);
+    }
+}
+
+```
+
+在这个示例中，我们定义了一个名为 `Dog` 的结构体，用来表示狗的属性。然后，我们创建了一个包含狗对象的向量 `dogs`。接下来，我们使用 `iter()` 方法将它转换成一个迭代器，并使用 `for` 循环遍历整个迭代器，使用 `take` 方法提取前两只狗，并使用 `skip` 方法跳过前两只狗来进行迭代。与之前一样，我们在使用 `take` 和 `skip` 方法后，使用 `clone()` 创建了新的迭代器以便重新使用。
 
 ## 17.4 Clone特性(Clone Trait)
 
