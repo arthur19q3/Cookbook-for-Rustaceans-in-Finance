@@ -8163,7 +8163,7 @@ fn main() {
    
    ```text
    Formatted Time: 2023-09-16 13:47:10
-  Parsed DateTime: 1983-04-13 12:09:14.274 +08:00
+   Parsed DateTime: 1983-04-13 12:09:14.274 +08:00
    Two Hours from Now: 2023-09-16 15:47:10.882155748 UTC
    Date: 2023-09-16
    Time: 13:47:10.882155748
