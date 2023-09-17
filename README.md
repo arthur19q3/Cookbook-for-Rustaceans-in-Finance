@@ -8290,7 +8290,7 @@ New York Offset: EDT
 
 如果只需处理常见的 UTC 和本地时区，那么 `Utc` 和 `Local` 就足够了。如果需要更多的时区支持，可以考虑使用 `chrono-tz`，[[chrono-tz官方文档] ](https://docs.rs/chrono-tz/latest/chrono_tz/#modules	)中详细列有可用的时区的模块和常量，有需要可以移步查询。
 
-# Chapter 20 - Redis和爬虫
+# Chapter 20 - Redis、爬虫、交易日库
 
 ### 20.1 Redis入门、安装和配置
 
@@ -8493,9 +8493,11 @@ sudo pacman -S redis
 
 总之，将Redis与Rust配合使用可以为你提供高性能、安全的数据存储和处理解决方案。通过使用Rust的强类型和内存安全性，以及Redis的速度和功能，你可以构建可靠的应用程序。当然，在实际应用中，还需要考虑更多复杂的细节，如连接池管理、性能优化和错误处理策略，以确保应用程序的稳定性和性能。
 
+### 20.4 爬虫[待更新]
+
+#### 案例：在Redis中构建交易日库[待更新]
+
 # Upcoming Chapters 
-
-
 
 > ####  Chapter 21 - 线程和管道
 >
