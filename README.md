@@ -8685,18 +8685,407 @@ async fn main() -> Result<(), Box<dyn Error>> {
    - 解析 JSON 数据。
    - 将数据存储到 Redis 数据库中。 这个函数还演示了 Rust 中的错误处理机制，使用 `Result` 返回可能的错误，以及如何使用 `anyhow` 库来创建自定义错误信息。
 4. **Redis 数据存储：** 使用 `redis` 库连接到 Redis 数据库，并使用 `sadd` 命令将节假日数据存储到名为 `holidays_set` 的 Redis 集合中。
-5. **主函数：** `main` 函数是程序的入口点。它使用 `tokio` 框架的 `#[tokio::main]` 属性宏来支持异步操作。在 `main` 函数中，我们调用了 `store_calendar_to_redis` 函数来执行节假日数据的存储操作。如果存储过程中出现错误，错误信息将被打印到标准错误流中；否则，将打印成功消息。
+5. **main函数：** `main` 函数是程序的入口点。它使用 `tokio` 框架的 `#[tokio::main]` 属性宏来支持异步操作。在 `main` 函数中，我们调用了 `store_calendar_to_redis` 函数来执行节假日数据的存储操作。如果存储过程中出现错误，错误信息将被打印到标准错误流中；否则，将打印成功消息。
+
+#  Chapter 21 - 线程和管道
+
+在 Rust 中，线程之间的通信通常通过管道（channel）来实现。管道提供了一种安全且高效的方式，允许一个线程将数据发送给另一个线程。下面详细介绍如何在 Rust 中使用线程和管道进行通信。
+
+首先，你需要在你的 `Cargo.toml` 文件中添加 `std` 库的依赖，因为线程和管道是标准库的一部分。
+
+```toml
+[dependencies]
+```
+
+接下来，我们将逐步介绍线程和管道通信的过程：
+
+### 创建线程和管道
+
+首先，导入必要的模块：
+
+```rust
+use std::thread;
+use std::sync::mpsc;
+```
+
+然后，创建一个管道，其中一个线程用于发送数据，另一个线程用于接收数据：
+
+```rust
+fn main() {
+    // 创建一个管道，sender 发送者，receiver 接收者
+    let (sender, receiver) = mpsc::channel();
+
+    // 启动一个新线程，用于发送数据
+    thread::spawn(move || {
+        let data = "Hello, from another thread!";
+        sender.send(data).unwrap();
+    });
+
+    // 主线程接收来自管道的数据
+    let received_data = receiver.recv().unwrap();
+    println!("Received: {}", received_data);
+}
+```
+
+### 线程间数据传递
+
+在上述代码中，我们创建了一个管道，然后在新线程中发送数据到管道中，主线程接收数据。请注意以下几点：
+
+- `mpsc::channel()` 创建了一个多生产者、单消费者管道（multiple-producer, single-consumer），这意味着你可以在多个线程中发送数据到同一个管道，但只能有一个线程接收数据。
+
+- `thread::spawn()` 用于创建一个新线程。`move` 关键字用于将所有权转移给新线程，以便在闭包中使用 `sender`。
+
+- `sender.send(data).unwrap();` 用于将数据发送到管道中。`unwrap()` 用于处理发送失败的情况。
+
+- `receiver.recv().unwrap();` 用于接收来自管道的数据。这是一个阻塞操作，如果没有数据可用，它将等待直到有数据。
+
+### 错误处理
+
+在实际应用中，你应该对线程和管道通信的可能出现的错误进行适当的处理，而不仅仅是使用 `unwrap()`。例如，你可以使用 `Result` 类型来处理错误，以确保程序的健壮性。
+
+这就是在 Rust 中使用线程和管道进行通信的基本示例。通过这种方式，你可以在多个线程之间安全地传递数据，这对于并发编程非常重要。请根据你的应用场景进行适当的扩展和错误处理。
+
+### 案例：多交易员-单一市场交互
+
+以下是一个简化的量化金融多线程通信的最小可行示例（MWE）。在这个示例中，我们将模拟一个简单的股票交易系统，其中多个线程代表不同的交易员并与市场交互。线程之间使用管道进行通信，以模拟订单的发送和交易的确认。
+
+```rust
+use std::sync::mpsc;
+use std::thread;
+
+// 定义一个订单结构
+struct Order {
+    trader_id: u32,
+    symbol: String,
+    quantity: u32,
+}
+
+fn main() {
+    // 创建一个市场和交易员之间的管道
+    let (market_tx, trader_rx) = mpsc::channel();
+
+    // 启动多个交易员线程
+    let num_traders = 3;
+    for trader_id in 0..num_traders {
+        let market_tx_clone = market_tx.clone();
+        thread::spawn(move || {
+            // 模拟交易员创建并发送订单
+            let order = Order {
+                trader_id,
+                symbol: format!("STK{}", trader_id),
+                quantity: (trader_id + 1) * 100,
+            };
+            market_tx_clone.send(order).unwrap();
+        });
+    }
+
+    // 主线程模拟市场接收和处理订单
+    for _ in 0..num_traders {
+        let received_order = trader_rx.recv().unwrap();
+        println!(
+            "Received order: Trader {}, Symbol {}, Quantity {}",
+            received_order.trader_id, received_order.symbol, received_order.quantity
+        );
+
+        // 模拟市场执行交易并发送确认
+        let confirmation = format!(
+            "Order for Trader {} successfully executed",
+            received_order.trader_id
+        );
+        println!("Market: {}", confirmation);
+    }
+}
+```
+
+在这个示例中：
+
+1. 我们定义了一个简单的 `Order` 结构来表示订单，包括交易员 ID、股票代码和数量。
+
+2. 我们创建了一个市场和交易员之间的管道，市场通过 `market_tx` 向交易员发送订单，交易员通过 `trader_rx` 接收市场的确认。
+
+3. 我们启动了多个交易员线程，每个线程模拟一个交易员创建订单并将其发送到市场。
+
+4. 主线程模拟市场接收订单、执行交易和发送确认。
+
+请注意，这只是一个非常简化的示例，实际的量化金融系统要复杂得多。在真实的应用中，你需要更复杂的订单处理逻辑、错误处理和线程安全性保证。此示例仅用于演示如何使用多线程和管道进行通信以模拟量化金融系统中的交易流程。
+
+#  Chapter 22 -  文件处理
+
+在 Rust 中进行文件处理涉及到多个标准库模块和方法，主要包括 `std::fs`、`std::io` 和 `std::path`。下面详细解释如何在 Rust 中进行文件的创建、读取、写入和删除等操作。
+
+### 打开和创建文件
+
+要在 Rust 中打开或创建文件，可以使用 `std::fs` 模块中的方法。以下是一些常用的方法：
+
+1. 打开文件以读取内容：
+
+   ```rust
+   use std::fs::File;
+   use std::io::Read;
+
+   fn main() -> std::io::Result<()> {
+       let mut file = File::open("file.txt")?;
+       let mut contents = String::new();
+       file.read_to_string(&mut contents)?;
+       println!("File contents: {}", contents);
+       Ok(())
+   }
+   ```
+
+   上述代码中，我们使用 `File::open` 打开文件并读取其内容。
+
+2. 创建新文件并写入内容：
+
+   ```rust
+   use std::fs::File;
+   use std::io::Write;
+   
+   fn main() -> std::io::Result<()> {
+       let mut file = File::create("new_file.txt")?;
+       file.write_all(b"Hello, Rust!")?;
+       Ok(())
+   }
+   ```
+
+   这里，我们使用 `File::create` 创建一个新文件并写入内容。
+
+### 文件路径操作
+
+在进行文件处理时，通常需要处理文件路径。`std::path` 模块提供了一些实用方法来操作文件路径，例如连接路径、获取文件名等。
+
+```rust
+use std::path::Path;
+
+fn main() {
+    let path = Path::new("folder/subfolder/file.txt");
+    
+    // 获取文件名
+    let file_name = path.file_name().unwrap().to_str().unwrap();
+    println!("File name: {}", file_name);
+    
+    // 获取文件的父目录
+    let parent_dir = path.parent().unwrap().to_str().unwrap();
+    println!("Parent directory: {}", parent_dir);
+    
+    // 连接路径
+    let new_path = path.join("another_file.txt");
+    println!("New path: {:?}", new_path);
+}
+```
+
+### 删除文件
+
+要删除文件，可以使用 `std::fs::remove_file` 方法。
+
+```rust
+use std::fs;
+
+fn main() -> std::io::Result<()> {
+    fs::remove_file("file_to_delete.txt")?;
+    Ok(())
+}
+```
+
+### 复制和移动文件
+
+要复制和移动文件，可以使用 `std::fs::copy` 和 `std::fs::rename` 方法。
+
+```rust
+use std::fs;
+
+fn main() -> std::io::Result<()> {
+    // 复制文件
+    fs::copy("source.txt", "destination.txt")?;
+    
+    // 移动文件
+    fs::rename("old_name.txt", "new_name.txt")?;
+    
+    Ok(())
+}
+```
+
+### 目录操作
+
+要处理目录，你可以使用 `std::fs` 模块中的方法。例如，要列出目录中的文件和子目录，可以使用 `std::fs::read_dir`。
+
+```rust
+use std::fs;
+
+fn main() -> std::io::Result<()> {
+    for entry in fs::read_dir("directory")? {
+        let entry = entry?;
+        let path = entry.path();
+        println!("{}", path.display());
+    }
+    
+    Ok(())
+}
+```
+
+以上是 Rust 中常见的文件处理操作的示例。要在实际应用中进行文件处理，请确保适当地处理可能发生的错误，以保证代码的健壮性。文件处理通常需要处理文件打开、读取、写入、关闭以及错误处理等情况。 Rust 提供了强大而灵活的标准库来支持这些操作。
+
+### 案例：递归删除不符合要求的文件夹【未重新测试】
+
+```rust
+use rayon::iter::ParallelBridge;
+use rayon::iter::ParallelIterator;
+
+pub fn delete_folders_with_regex(
+    top_folder: &str,
+    keep_folders: Vec<&str>,
+    name_regex: Arc<Regex>,
+) {
+    // 内部函数：递归删除文件夹
+    fn delete_folders_recursive(
+        folder: &str,
+        keep_folders: Arc<Vec<&str>>,
+        name_regex: Arc<Regex>,
+    ) {
+        if let Ok(entries) = fs::read_dir(folder) {
+            entries.par_bridge().for_each(|entry| {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+                    if path.is_dir() {
+                        if let Some(folder_name) = path.file_name() {
+                            if let Some(folder_name_str) = folder_name.to_str() {
+                                let name_regex_ref = &*name_regex;
+                                if name_regex_ref.is_match(folder_name_str) {
+                                    if !keep_folders.contains(&folder_name_str) {
+                                        println!("删除文件夹: {:?}", path);
+                                        fs::remove_dir_all(&path)
+                                            .expect("Failed to delete folder");
+                                    } else {
+                                        println!("保留文件夹: {:?}", path);
+                                    }
+                                } else {
+                                    println!("忽略非字母文件夹: {:?}", path);
+                                }
+                            }
+                        }
+
+                        // 继续深度搜索进入子文件夹
+                        delete_folders_recursive(&path.to_string_lossy().to_string(), keep_folders.clone(), name_regex.clone());
+                    }
+                }
+            });
+        }
+    }
+
+    if let Ok(metadata) = fs::metadata(top_folder) {
+        if metadata.is_dir() {
+            println!("开始处理文件夹: {:?}", top_folder);
+            let keep_folders = Arc::new(keep_folders);
+            delete_folders_recursive(top_folder, keep_folders.clone(), name_regex);
+        } else {
+            println!("顶层文件夹不是一个目录: {:?}", top_folder);
+        }
+    } else {
+        println!("顶层文件夹不存在: {:?}", top_folder);
+    }
+}
+```
+
+
+
+# PART II 量化实战（Rust Quantitative Trading in Actions）
+
+#  Chapter 23 - Polars入门 
+
+Polars 是一个基于 Rust 语言开发的数据操作和分析库，旨在提供高性能和易用性。它类似于 Python 中的 pandas 库，但是由于 Rust 的性能和内存安全特性，Polars 在处理大型数据集时通常比 pandas 更快。
+
+以下是 Polars 的一些主要特点和功能：
+
+1. **高性能**：Polars 使用 Rust 编写，能够充分利用 Rust 的性能优势，执行数据操作速度非常快。
+
+2. **易用性**：Polars 提供了类似于 pandas 的 API，因此对于熟悉 pandas 的用户来说，学习曲线较低。
+
+3. **数据操作**：Polars 支持各种数据操作，包括筛选、过滤、分组、聚合、连接和排序等。你可以对数据进行广泛的操作，以满足不同的分析需求。
+
+4. **列式存储**：Polars 使用列式存储（columnar storage），这意味着它能够高效地处理大型数据集。列式存储通常比行式存储（如 CSV）更高效，特别是在需要执行复杂查询时。
+
+5. **类型安全**：Rust 的类型系统确保了数据的安全性和正确性。Polars 在数据类型处理上非常严格，不会出现常见的类型错误。
+
+6. **跨平台**：由于 Rust 的跨平台特性，Polars 可以在各种操作系统上运行，包括 Windows、Linux 和 macOS。
+
+7. **整合性**：Polars 可以轻松地与其他 Rust 生态系统中的库进行整合，例如 Serde 用于序列化和反序列化数据。
+
+8. **支持各种数据源**：Polars 可以从各种数据源中加载数据，包括 CSV、Parquet、JSON、Arrow 等。它还支持从内存中的数据结构（例如 Vec 或 DataFrames）创建数据集。
+
+9. **分布式计算**：Polars 支持分布式计算，这意味着你可以在多台计算机上并行处理大规模数据。
+
+10. **社区支持**：Polars 是一个活跃的开源项目，拥有一个积极的社区，持续开发和改进。
+
+以下是一个使用 Polars 的简单示例【待重新测试】：
+
+```rust
+use polars::prelude::*;
+
+fn main() -> Result<()> {
+    // 创建一个示例的DataFrame
+    let df = DataFrame::new(vec![
+        Series::new("name", &["Alice", "Bob", "Charlie"]),
+        Series::new("age", &[25, 30, 35]),
+    ])?;
+
+    // 执行数据操作，例如筛选
+    let filtered_df = df.filter(col("age").lt(32))?;
+
+    // 显示结果
+    println!("{:?}", filtered_df);
+
+    Ok(())
+}
+```
+
+这个示例创建了一个包含姓名和年龄的 DataFrame，然后对年龄进行筛选，并显示结果。
+
+总之，Polars 是一个强大的数据操作和分析库，特别适用于需要高性能和数据安全性的 Rust 项目。如果你正在开发需要处理大型数据集的应用程序，可以考虑使用 Polars 来提高数据操作效率。
+
+### 序列化 & 转化为polars的dataframe
+
+以下例子演示如何使用serde_json读取struct中的数据转化为json，以及如何使用polars读取json数据.
+
+```rust
+use serde::{Serialize, Deserialize};
+use serde_json;
+use polars::prelude::*;
+use std::io::Cursor;
+
+#[derive(Debug, Serialize, Deserialize)]
+struct StockZhAHist {
+    date: String,
+    open: f64,
+    close: f64,
+    high: f64,
+    low: f64,
+    volume: f64,
+    turnover: f64,
+    amplitude: f64,
+    change_rate: f64,
+    change_amount: f64,
+    turnover_rate: f64,
+}
+
+fn main() {
+    let data = vec![
+        StockZhAHist { date: "1996-12-16T00:00:00.000".to_string(), open: 16.86, close: 16.86, high: 16.86, low: 16.86, volume: 62442.0, turnover: 105277000.0, amplitude: 0.0, change_rate: -10.22, change_amount: -1.92, turnover_rate: 0.87 },
+        StockZhAHist { date: "1996-12-17T00:00:00.000".to_string(), open: 15.17, close: 15.17, high: 16.79, low: 15.17, volume: 463675.0, turnover: 718902016.0, amplitude: 9.61, change_rate: -10.02, change_amount: -1.69, turnover_rate: 6.49 },
+        StockZhAHist { date: "1996-12-18T00:00:00.000".to_string(), open: 15.28, close: 16.69, high: 16.69, low: 15.18, volume: 445380.0, turnover: 719400000.0, amplitude: 9.95, change_rate: 10.02, change_amount: 1.52, turnover_rate: 6.24 },
+        StockZhAHist { date: "1996-12-19T00:00:00.000".to_string(), open: 17.01, close: 16.4, high: 17.9, low: 15.99, volume: 572946.0, turnover: 970124992.0, amplitude: 11.44, change_rate: -1.74, change_amount: -0.29, turnover_rate: 8.03 }
+    ];
+
+    let json = serde_json::to_string(&data).unwrap();
+    println!("{}", json);
+    let df = JsonReader::new(Cursor::new(json))
+        .finish().unwrap();
+    println!("{:#?}", df);
+}
+```
+
+####  
 
 # Upcoming Chapters 
 
-> ####  Chapter 21 - 线程和管道
->
-> ####  Chapter 22 -  文件处理
->
-> ### PART II 量化实战（Rust Quantitative Trading in Actions）
->
-> ####  Chapter 23 - Polars入门 
->
 > ####  Chapter 24 - 时序数据库Clickhouse交互
 >
 > ####   Chapter 25 - Unsafe
