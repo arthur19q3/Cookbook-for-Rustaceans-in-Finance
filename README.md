@@ -8333,7 +8333,7 @@ sudo pacman -S redis
 
 除了传统的CLI以外，Redis还提供了图形化前端 [RedisInsight](https://redis.com/redis-enterprise/redis-insight/) 方便直观查看：
 
-![image-20230917094756439](/home/arthur/.config/Typora/typora-user-images/image-20230917094756439.png)
+![redisinsight界面](/home/arthur/.config/Typora/typora-user-images/image-20230917095054994.png)
 
 下面我们会演示如何为通过Rust和Redis的Rust客户端来插入图示的这对键值对。
 
@@ -8380,7 +8380,7 @@ sudo pacman -S redis
    在Rust中，处理错误非常重要，因此需要考虑如何处理Redis操作可能出现的错误。在上面的示例中，我们使用了`?`来处理Redis操作可能引发的错误。你可以根据你的应用程序需求来处理这些错误，例如，记录日志或采取其他适当的措施。
 
 4. 使用异步编程：
-   如果你需要处理大量的并发操作或需要高性能，可以考虑使用Rust的异步编程库，如Tokio或async-std，与异步Redis客户端库配合使用。这将允许你以非阻塞的方式执行Redis操作，以提高性能。
+   如果你需要处理大量的并发操作或需要高性能，可以考虑使用Rust的异步编程库，如Tokio，与异步Redis客户端库配合使用。这将允许你以非阻塞的方式执行Redis操作，以提高性能。
 
 5. 定期清理过期数据：
    Redis支持过期时间设置，你可以在将数据存储到Redis中时为其设置过期时间。在Rust中，你可以编写定期任务来清理过期数据，以确保Redis中的数据不会无限增长。
