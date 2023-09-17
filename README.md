@@ -9023,6 +9023,122 @@ fn main() {
 
 ```
 
+让我们详细讲解这个脚本的各个步骤：
+
+1. 首先导入所需的库：
+
+   ```rust
+   use rayon::iter::ParallelBridge;
+   use rayon::iter::ParallelIterator;
+   use regex::Regex;
+   use std::sync::Arc;
+   use std::fs;
+   ```
+
+   首先，我们导入了所需的外部库。`rayon` 用于并发迭代，`regex` 用于处理正则表达式，`std::sync::Arc` 用于创建原子引用计数指针。
+
+2. 创建 `delete_folders_with_regex` 函数：
+
+   ```rust
+   fn delete_folders_with_regex(
+       top_folder: &str,
+       keep_folders: Vec<&str>,
+       name_regex: Arc<Regex>,
+   ) -> Result<(), Box<dyn std::error::Error>> {
+   ```
+   
+   我们定义了一个名为 `delete_folders_with_regex` 的函数，它接受顶层文件夹路径 `top_folder`、要保留的文件夹名称列表 `keep_folders` 和正则表达式对象 `name_regex` 作为参数。该函数返回一个 `Result`，以处理潜在的错误。
+
+3. 创建 `delete_folders_recursive` 函数：
+
+   ```rust
+   fn delete_folders_recursive(
+       folder: &str,
+       keep_folders: &Arc<Vec<&str>>,
+       name_regex: &Arc<Regex>,
+   ) -> Result<(), Box<dyn std::error::Error>> {
+   ```
+   
+   在 `delete_folders_with_regex` 函数内部，我们定义了一个名为 `delete_folders_recursive` 的内部函数，用于递归地删除文件夹。它接受当前文件夹路径 `folder`、要保留的文件夹名称列表 `keep_folders` 和正则表达式对象 `name_regex` 作为参数。同样，它返回一个 `Result`。
+
+4. 使用 `fs::read_dir` 读取文件夹内容：
+
+   ```rust
+   for entry in fs::read_dir(folder)? {
+   ```
+   
+   我们使用 `fs::read_dir` 函数读取了当前文件夹 `folder` 中的内容，并通过 `for` 循环迭代每个条目 `entry`。
+
+5. 检查条目是否是文件夹：
+
+   ```rust
+   let entry = entry?;
+   let path = entry.path();
+   if path.is_dir() {
+   ```
+   
+   我们首先检查 `entry` 是否是一个文件夹，因为只有文件夹才需要进一步处理，文件是会被忽略的。
+
+6. 获取文件夹名称并匹配正则表达式：
+
+   ```rust
+   if let Some(folder_name) = path.file_name() {
+       if let Some(folder_name_str) = folder_name.to_str() {
+           if name_regex.is_match(folder_name_str) {
+   ```
+   
+   我们获取了文件夹的名称，并将其转换为字符串形式。然后，我们使用正则表达式 `name_regex` 来检查文件夹名称是否与要求匹配。
+
+7. 根据匹配结果执行操作：
+
+   ```rust
+   if !keep_folders.contains(&folder_name_str) {
+       println!("删除文件夹: {:?}", path);
+       fs::remove_dir_all(&path)?;
+   } else {
+       println!("保留文件夹: {:?}", path);
+   }
+   ```
+   
+   如果文件夹名称匹配了正则表达式，并且不在要保留的文件夹列表中，我们会删除该文件夹及其内容。否则，我们只是输出一条信息告诉用户，在命令行声明该文件夹将被保留。
+
+8. 递归进入子文件夹：
+
+   ```rust
+   delete_folders_recursive(
+       &path.join(&folder_name_str),
+       keep_folders,
+       name_regex
+   )?;
+   ```
+   
+   最后，我们递归地调用 `delete_folders_recursive` 函数，进入子文件夹进行相同的处理。
+
+9. 处理顶层文件夹：
+
+   ```rust
+   let metadata = fs::metadata(top_folder)?;
+   if metadata.is_dir() {
+       println!("开始处理文件夹: {:?}", top_folder);
+       let keep_folders = Arc::new(keep_folders);
+       delete_folders_recursive(top_folder, &keep_folders, &name_regex)?;
+   } else {
+       println!("顶层文件夹不是一个目录: {:?}", top_folder);
+   }
+   ```
+   
+   在 `main` 函数中，我们首先检查顶层文件夹是否存在，如果存在，就调用 `delete_folders_recursive` 函数开始处理。我们还使用 `Arc` 包装了要保留的文件夹名称列表，以便多线程访问。
+
+10. 完成处理并返回 `Result`：
+
+    ```rust
+    Ok(())
+    ```
+    
+    最后，我们返回 `Ok(())` 表示操作成功完成。
+    
+    
+
 ### 补充学习：元数据
 
 元数据可以理解为有关文件或文件夹的基本信息，就像一个文件的"身份证"一样。这些信息包括文件的大小、创建时间、修改时间以及文件是不是文件夹等。比如，你可以通过元数据知道一个文件有多大，是什么时候创建的，是什么时候修改的，还能知道这个东西是不是一个文件夹。
@@ -9067,6 +9183,121 @@ fn main() -> Result<(), std::io::Error> {
 一般操作文件系统的函数可能会返回 `Result` 类型，所以你需要处理潜在的错误。在示例中，我们使用了 `?` 运算符来传播错误，但你也可以选择使用模式匹配等其他方式来自定义地处理错误。
 
 ### 补充学习：正则表达式
+
+现在我们再来学一下正则表达式。正则表达式是一种强大的文本模式匹配工具，它允许你以非常灵活的方式搜索、匹配和操作文本数据。使用前我们有一些基础的概念和语法需要了解。下面是正则表达式的一些基础知识：
+
+#### 1. 字面量字符匹配
+
+正则表达式的最基本功能是匹配字面量字符。这意味着你可以创建一个正则表达式来精确匹配输入文本中的特定字符。例如，正则表达式 `cat` 当然会匹配输入文本中的 "cat"。
+
+#### 2. 元字符
+
+正则表达式时中的元字符是具有特殊含义的。以下是一些常见的元字符以及它们的说明和示例：
+
+1. `.`（点号）：匹配除换行符外的任意字符。
+   
+   - 示例：正则表达式 `c.t` 匹配 "cat"、"cut"、"cot" 等。
+
+2. `*`（星号）：匹配前一个元素零次或多次。
+   
+   - 示例：正则表达式 `ab*c` 匹配 "ac"、"abc"、"abbc" 等。
+
+3. `+`（加号）：匹配前一个元素一次或多次。
+   
+   - 示例：正则表达式 `ca+t` 匹配 "cat"、"caat"、"caaat" 等。
+
+4. `?`（问号）：匹配前一个元素零次或一次。
+   
+   - 示例：正则表达式 `colou?r` 匹配 "color" 或 "colour"。
+
+5. `|`（竖线）：表示或，用于在多个模式之间选择一个。
+   
+   - 示例：正则表达式 `apple|banana` 匹配 "apple" 或 "banana"。
+
+6. `[]`（字符类）：用于定义一个字符集合，匹配方括号内的任何一个字符。
+
+   - 示例：正则表达式 `[aeiou]` 匹配任何一个元音字母。
+
+7. `()`（分组）：用于将多个模式组合在一起，以便对它们应用量词或其他操作。
+
+   - 示例：正则表达式 `(ab)+` 匹配 "ab"、"abab"、"ababab" 等。
+
+这些元字符允许你创建更复杂的正则表达式模式，以便更灵活地匹配文本。你可以根据需要组合它们来构建各种不同的匹配规则，用于解决文本处理中的各种任务。
+
+#### 3. 字符类
+
+字符类用于匹配一个字符集合中的任何一个字符。例如，正则表达式 `[aeiou]` 会匹配任何一个元音字母（a、e、i、o 或 u）。
+
+#### 4. 量词
+
+量词是正则表达式中用于指定模式重复次数的重要元素。它们允许你定义匹配重复出现的字符或子模式的规则。以下是常见的量词以及它们的说明和示例：
+
+1. `*`（星号）：匹配前一个元素零次或多次。
+   
+   - 示例：正则表达式 `ab*c` 匹配 "ac"、"abc"、"abbc" 等。因为 `*` 表示零次或多次，所以它允许前一个字符 `b` 重复出现或完全缺失。
+
+2. `+`（加号）：匹配前一个元素一次或多次。
+   
+   - 示例：正则表达式 `ca+t` 匹配 "cat"、"caat"、"caaat" 等。因为 `+` 表示一次或多次，所以它要求前一个字符 `a` 至少出现一次。
+
+3. `?`（问号）：匹配前一个元素零次或一次。
+   
+   - 示例：正则表达式 `colou?r` 匹配 "color" 或 "colour"。因为 `?` 表示零次或一次，所以它允许前一个字符 `u` 的存在是可选的。
+
+4. `{n}`：精确匹配前一个元素 n 次。
+   
+   - 示例：正则表达式 `x{3}` 匹配 "xxx"。它要求前一个字符 `x` 出现精确三次。
+
+5. `{n,}`：至少匹配前一个元素 n 次。
+   
+   - 示例：正则表达式 `d{2,}` 匹配 "dd"、"ddd"、"dddd" 等。它要求前一个字符 `d` 至少出现两次。
+
+6. `{n,m}`：匹配前一个元素 n 到 m 次。
+   
+   - 示例：正则表达式 `[0-9]{2,4}` 匹配 "123"、"4567"、"89" 等。它要求前一个元素是数字，且出现的次数在 2 到 4 次之间。
+
+这些量词使你能够定义更灵活的匹配规则，以适应不同的文本模式。
+
+#### 5. 锚点
+
+锚点是正则表达式中用于指定匹配发生的位置的特殊字符。它们不匹配字符本身，而是匹配输入文本的特定位置。以下是一些常见的锚点以及它们的说明和示例：
+
+1. `^`（脱字符）：匹配输入文本的开头。
+
+   - 示例：正则表达式 `^Hello` 匹配以 "Hello" 开头的文本。例如，它匹配 "Hello, world!" 中的 "Hello"，但不匹配 "Hi, Hello" 中的 "Hello"，因为后者不在文本开头。
+
+2. `$`（美元符号）：匹配输入文本的结尾。
+
+   - 示例：正则表达式 `world!$` 匹配以 "world!" 结尾的文本。例如，它匹配 "Hello, world!" 中的 "world!"，但不匹配 "world! Hi" 中的 "world!"，因为后者不在文本结尾。
+
+3. `\b`（单词边界）：匹配单词的边界，通常用于确保匹配的**单词完整**而不是**部分匹配**。
+   - 示例：正则表达式 `\bapple\b` 匹配 "apple" 这个完整的单词。它匹配 "I have an apple." 中的 "apple"，但不匹配 "apples" 中的 "apple"。
+   
+4. `\B`（非单词边界）：匹配非单词边界的位置。
+- 示例：正则表达式 `\Bcat\B` 匹配 "The cat sat on the cat." 中的第二个 "cat"，因为它位于两个非单词边界之间，而不是单词 "cat" 的一部分。
+
+这些锚点允许你精确定位匹配发生的位置，在处理文本中的单词、行首、行尾等情况时非常有用。
+
+#### 6. 转义字符
+
+如果你需要匹配元字符本身，你可以使用反斜杠 `\` 进行转义。例如，要匹配 `.`，你可以使用 `\.`。
+
+#### 7. 示例
+
+以下是一些正则表达式的示例：
+
+- 匹配一个邮箱地址：`[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}`
+- 匹配一个日期（例如，YYYY-MM-DD）：`[0-9]{4}-[0-9]{2}-[0-9]{2}`
+- 匹配一个URL：`https?://[^\s/$.?#].[^\s]*`
+
+#### 8. 工具和资源
+
+为了学习和测试正则表达式，你可以使用在线工具或本地开发工具，例如：
+
+- [regex101.com](https://regex101.com/): 一个在线正则表达式测试和学习工具，提供可视化解释和测试功能。
+- Rust 的 regex 库文档：Rust 的 regex 库提供了强大的正则表达式支持，你可以查阅其文档以学习如何在 Rust 中使用正则表达式。
+
+正则表达式是一个强大的文本处理工具，它可以在文本中查找、匹配和操作复杂的模式。掌握正则表达式可以帮助你处理各种文本和文件处理任务。
 
 ### 补充学习：使用rayon库进行并行处理
 
@@ -9124,32 +9355,35 @@ fn main() -> Result<()> {
 
 总之，Polars 是一个强大的数据操作和分析库，特别适用于需要高性能和数据安全性的 Rust 项目。如果你正在开发需要处理大型数据集的应用程序，可以考虑使用 Polars 来提高数据操作效率。
 
-### 序列化 & 转化为polars的dataframe
+### 案例：序列化 & 转化为polars的dataframe
 
-以下例子演示如何使用serde_json读取struct中的数据转化为json，以及如何使用polars读取json数据.
+为了简单说明序列化和反序列化在polars中的作用，我写了这段MWE代码以演示了如何定义一个包含历史股票数据的结构体，将数据序列化为 JSON 字符串，然后使用 Polars 库创建一个数据框架并打印出来。这对于介绍如何处理金融数据以及使用 Rust 进行数据分析非常有用。
 
 ```rust
-use serde::{Serialize, Deserialize};
-use serde_json;
-use polars::prelude::*;
-use std::io::Cursor;
+// 引入所需的库
+use serde::{Serialize, Deserialize}; // 用于序列化和反序列化
+use serde_json; // 用于处理 JSON 数据
+use polars::prelude::*; // 使用 Polars 处理数据
+use std::io::Cursor; // 用于创建内存中的数据流
 
+// 定义一个结构体，表示中国A股的历史股票数据
 #[derive(Debug, Serialize, Deserialize)]
 struct StockZhAHist {
-    date: String,
-    open: f64,
-    close: f64,
-    high: f64,
-    low: f64,
-    volume: f64,
-    turnover: f64,
-    amplitude: f64,
-    change_rate: f64,
-    change_amount: f64,
-    turnover_rate: f64,
+    date: String,         // 日期
+    open: f64,            // 开盘价
+    close: f64,           // 收盘价
+    high: f64,            // 最高价
+    low: f64,             // 最低价
+    volume: f64,          // 交易量
+    turnover: f64,        // 成交额
+    amplitude: f64,       // 振幅
+    change_rate: f64,     // 涨跌幅
+    change_amount: f64,   // 涨跌额
+    turnover_rate: f64,   // 换手率
 }
 
 fn main() {
+    // 创建一个包含历史股票数据的向量
     let data = vec![
         StockZhAHist { date: "1996-12-16T00:00:00.000".to_string(), open: 16.86, close: 16.86, high: 16.86, low: 16.86, volume: 62442.0, turnover: 105277000.0, amplitude: 0.0, change_rate: -10.22, change_amount: -1.92, turnover_rate: 0.87 },
         StockZhAHist { date: "1996-12-17T00:00:00.000".to_string(), open: 15.17, close: 15.17, high: 16.79, low: 15.17, volume: 463675.0, turnover: 718902016.0, amplitude: 9.61, change_rate: -10.02, change_amount: -1.69, turnover_rate: 6.49 },
@@ -9157,13 +9391,21 @@ fn main() {
         StockZhAHist { date: "1996-12-19T00:00:00.000".to_string(), open: 17.01, close: 16.4, high: 17.9, low: 15.99, volume: 572946.0, turnover: 970124992.0, amplitude: 11.44, change_rate: -1.74, change_amount: -0.29, turnover_rate: 8.03 }
     ];
 
+    // 将历史股票数据序列化为 JSON 字符串并打印出来
     let json = serde_json::to_string(&data).unwrap();
     println!("{}", json);
+
+    // 从 JSON 字符串创建 Polars 数据框架
     let df = JsonReader::new(Cursor::new(json))
         .finish().unwrap();
+
+    // 打印 Polars 数据框架
     println!("{:#?}", df);
 }
+
 ```
+
+![image-20230917221931208](/home/arthur/.config/Typora/typora-user-images/image-20230917221931208.png)
 
 #  Chapter 24 - 时序数据库Clickhouse【未完成】
 
