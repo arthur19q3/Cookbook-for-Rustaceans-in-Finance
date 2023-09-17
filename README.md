@@ -2,7 +2,7 @@
 
 # Cookbook for Rustaceans in Finance / Rust量化金融开发指南
 
-/Arthur Zhang, 2023
+/Arthur Zhang
 
 #  Preface 序
 
@@ -8814,7 +8814,9 @@ fn main() {
 
 在 Rust 中进行文件处理涉及到多个标准库模块和方法，主要包括 `std::fs`、`std::io` 和 `std::path`。下面详细解释如何在 Rust 中进行文件的创建、读取、写入和删除等操作。
 
-### 打开和创建文件
+## 22.1 基础操作
+
+### 22.1.1 打开和创建文件
 
 要在 Rust 中打开或创建文件，可以使用 `std::fs` 模块中的方法。以下是一些常用的方法：
 
@@ -8850,7 +8852,7 @@ fn main() {
 
    这里，我们使用 `File::create` 创建一个新文件并写入内容。
 
-### 文件路径操作
+### 22.1.2 文件路径操作
 
 在进行文件处理时，通常需要处理文件路径。`std::path` 模块提供了一些实用方法来操作文件路径，例如连接路径、获取文件名等。
 
@@ -8874,7 +8876,7 @@ fn main() {
 }
 ```
 
-### 删除文件
+### 22.1.3 删除文件
 
 要删除文件，可以使用 `std::fs::remove_file` 方法。
 
@@ -8887,7 +8889,7 @@ fn main() -> std::io::Result<()> {
 }
 ```
 
-### 复制和移动文件
+### 22.1.4 复制和移动文件
 
 要复制和移动文件，可以使用 `std::fs::copy` 和 `std::fs::rename` 方法。
 
@@ -8905,7 +8907,7 @@ fn main() -> std::io::Result<()> {
 }
 ```
 
-### 目录操作
+### 22.1.5 目录操作
 
 要处理目录，你可以使用 `std::fs` 模块中的方法。例如，要列出目录中的文件和子目录，可以使用 `std::fs::read_dir`。
 
@@ -8925,24 +8927,33 @@ fn main() -> std::io::Result<()> {
 
 以上是 Rust 中常见的文件处理操作的示例。要在实际应用中进行文件处理，请确保适当地处理可能发生的错误，以保证代码的健壮性。文件处理通常需要处理文件打开、读取、写入、关闭以及错误处理等情况。 Rust 提供了强大而灵活的标准库来支持这些操作。
 
-### 案例：递归删除不符合要求的文件夹【未重新测试】
+### 案例：递归删除不符合要求的文件夹
+
+这是一个经典的案例，现在我有一堆以期货代码所写为名的文件夹，里面包含着期货公司为我提供的大量的csv格式的原始数据（30 TB左右）， 如果我只想从中遴选出某几个我需要的品种的文件夹，剩下的所有的文件都删除掉，我该怎么办呢？。现在来一起看一下这是怎么实现的：
 
 ```rust
+// 引入需要的外部库
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
+use regex::Regex;
+use std::sync::{Arc};
+use std::fs;
 
-pub fn delete_folders_with_regex(
-    top_folder: &str,
-    keep_folders: Vec<&str>,
-    name_regex: Arc<Regex>,
+// 定义一个函数，用于删除文件夹中不符合要求的文件夹
+fn delete_folders_with_regex(
+    top_folder: &str,         // 顶层文件夹的路径
+    keep_folders: Vec<&str>, // 要保留的文件夹名称列表
+    name_regex: Arc<Regex>,  // 正则表达式对象，用于匹配文件夹名称
 ) {
     // 内部函数：递归删除文件夹
     fn delete_folders_recursive(
-        folder: &str,
-        keep_folders: Arc<Vec<&str>>,
-        name_regex: Arc<Regex>,
+        folder: &str,               // 当前文件夹的路径
+        keep_folders: Arc<Vec<&str>>, // 要保留的文件夹名称列表（原子引用计数指针）
+        name_regex: Arc<Regex>,    // 正则表达式对象（原子引用计数指针）
     ) {
+        // 使用fs::read_dir读取文件夹内容，返回一个Result
         if let Ok(entries) = fs::read_dir(folder) {
+            // 使用Rayon库的并行迭代器处理文件夹内容
             entries.par_bridge().for_each(|entry| {
                 if let Ok(entry) = entry {
                     let path = entry.path();
@@ -8950,9 +8961,11 @@ pub fn delete_folders_with_regex(
                         if let Some(folder_name) = path.file_name() {
                             if let Some(folder_name_str) = folder_name.to_str() {
                                 let name_regex_ref = &*name_regex;
+                                // 使用正则表达式检查文件夹名称是否匹配
                                 if name_regex_ref.is_match(folder_name_str) {
                                     if !keep_folders.contains(&folder_name_str) {
                                         println!("删除文件夹: {:?}", path);
+                                        // 递归地删除文件夹及其内容
                                         fs::remove_dir_all(&path)
                                             .expect("Failed to delete folder");
                                     } else {
@@ -8963,19 +8976,25 @@ pub fn delete_folders_with_regex(
                                 }
                             }
                         }
-
-                        // 继续深度搜索进入子文件夹
-                        delete_folders_recursive(&path.to_string_lossy().to_string(), keep_folders.clone(), name_regex.clone());
+                        // 递归进入子文件夹
+                        delete_folders_recursive(
+                            &path.display().to_string(),
+                            keep_folders.clone(),
+                            name_regex.clone()
+                        );
                     }
                 }
             });
         }
     }
 
+    // 使用fs::metadata检查顶层文件夹的元数据信息
     if let Ok(metadata) = fs::metadata(top_folder) {
         if metadata.is_dir() {
             println!("开始处理文件夹: {:?}", top_folder);
+            // 将要保留的文件夹名称列表包装在Arc中，以进行多线程访问
             let keep_folders = Arc::new(keep_folders);
+            // 调用递归函数开始删除操作
             delete_folders_recursive(top_folder, keep_folders.clone(), name_regex);
         } else {
             println!("顶层文件夹不是一个目录: {:?}", top_folder);
@@ -8984,9 +9003,72 @@ pub fn delete_folders_with_regex(
         println!("顶层文件夹不存在: {:?}", top_folder);
     }
 }
+
+// 定义要保留的文件夹名称列表。此处使用了static声明，是因为这个列表在整个程序的运行时都是不变的。
+static KEEP_FOLDERS: [&str; 11] = ["SR", "CF", "OI", "TA", "M", "P", "AG", "CU", "AL", "ZN", "RU"];
+
+fn main() {
+    let top_folder = "/opt/sample"; // 指定顶层文件夹的路径
+    // 将静态数组转换为可变Vec以传递给函数
+    let keep_folders: Vec<&str> = KEEP_FOLDERS.iter().map(|s| *s).collect();
+    // 创建正则表达式对象，用于匹配文件夹名称
+    let name_regex = Regex::new("^[a-zA-Z]+$").expect("Invalid regex pattern");
+    // 将正则表达式包装在Arc中以进行多线程访问
+    let name_regex = Arc::new(name_regex);
+
+    // 调用主要函数以启动文件夹删除操作
+    delete_folders_with_regex(top_folder, keep_folders, name_regex);
+}
+
+
 ```
 
+### 补充学习：元数据
 
+元数据可以理解为有关文件或文件夹的基本信息，就像一个文件的"身份证"一样。这些信息包括文件的大小、创建时间、修改时间以及文件是不是文件夹等。比如，你可以通过元数据知道一个文件有多大，是什么时候创建的，是什么时候修改的，还能知道这个东西是不是一个文件夹。
+
+在Rust中，元数据（metadata）通常不包括实际的数据内容。元数据提供了关于文件或实体的属性和特征的信息。我们可以使用 `std::fs::metadata` 函数来获取文件或目录的元数据。
+
+```rust
+use std::fs;
+
+fn main() -> Result<(), std::io::Error> {
+    let file_path = "example.txt"; 
+
+    // 获取文件的元数据
+    let metadata = fs::metadata(file_path)?;
+
+    // 获取文件大小（以字节为单位）
+    let file_size = metadata.len();
+    println!("文件大小: {} 字节", file_size);
+
+    // 获取文件创建时间和修改时间
+    let created = metadata.created()?;
+    let modified = metadata.modified()?;
+
+    println!("创建时间: {:?}", created);
+    println!("修改时间: {:?}", modified);
+
+    // 检查文件类型
+    if metadata.is_file() {
+        println!("这是一个文件。");
+    } else if metadata.is_dir() {
+        println!("这是一个目录。");
+    } else {
+        println!("未知文件类型。");
+    }
+
+    Ok(())
+}
+```
+
+在这个示例中，我们首先使用 `fs::metadata` 获取文件 "example.txt" 的元数据，然后从元数据中提取文件大小、创建时间、修改时间以及文件类型信息。
+
+一般操作文件系统的函数可能会返回 `Result` 类型，所以你需要处理潜在的错误。在示例中，我们使用了 `?` 运算符来传播错误，但你也可以选择使用模式匹配等其他方式来自定义地处理错误。
+
+### 补充学习：正则表达式
+
+### 补充学习：使用rayon库进行并行处理
 
 # PART II 进阶部分 - 量化实战（Rust Quantitative Trading in Actions）
 
@@ -9800,15 +9882,15 @@ Fibonacci回调和扩展水平可以帮助交易者识别可能的支撑和阻�
 ![img_1.png](img_1.png)
 Ichimoku云，也称为**一目均衡图**，是一种综合性的技术分析工具，最初由日本分析师兼记者一目山人（Goichi Hosoda）在20世纪20年代开发。该工具旨在提供有关资产价格趋势、支撑和阻力水平以及未来价格走势的综合信息。Ichimoku云由多个组成部分组成，以下是对每个组成部分的详细解释：
 
-**1. 转换线（Tenkan-sen）：** 转换线是计算Ichimoku云的第一个组成部分，通常表示为红色线。它是最近9个交易日的最高价和最低价的平均值。转换线用于提供近期价格走势的参考。
+**1. 转换线（転換線 Tenkan-sen）：** 转换线是计算Ichimoku云的第一个组成部分，通常表示为红色线。它是最近9个交易日的最高价和最低价的平均值。转换线用于提供近期价格走势的参考。
 
-**2. 基准线（Kijun-sen）：** 基准线是计算Ichimoku云的第二个组成部分，通常表示为蓝色线。它是最近26个交易日的最高价和最低价的平均值。基准线用于提供中期价格走势的参考。
+**2. 基准线（基準線 Kijun-sen）：** 基准线是计算Ichimoku云的第二个组成部分，通常表示为蓝色线。它是最近26个交易日的最高价和最低价的平均值。基准线用于提供中期价格走势的参考。
 
-**3. 云层（Kumo或Senkou Span）：** 云层是Ichimoku云的主要组成部分之一，包括两条线，分别称为Senkou Span A和Senkou Span B。Senkou Span A通常表示为浅绿色线，是转换线和基准线的平均值，向前移动26个交易日。Senkou Span B通常表示为深绿色线，是最近52个交易日的最高价和最低价的平均值，向前移动26个交易日。云层的颜色表示价格走势的方向，例如，云层由浅绿色变为深绿色可能表示上升趋势。
+**3. 云层（先行スパン Senkou Span/Kumo）：** 云层是Ichimoku云的主要组成部分之一，包括两条线，分别称为Senkou Span A和Senkou Span B。Senkou Span A通常表示为浅绿色线，是转换线和基准线的平均值，向前移动26个交易日。Senkou Span B通常表示为深绿色线，是最近52个交易日的最高价和最低价的平均值，向前移动26个交易日。云层的颜色表示价格走势的方向，例如，云层由浅绿色变为深绿色可能表示上升趋势。
 
-**4. 未来云（Future Cloud）：** 未来云是Ichimoku云中的一部分，通常由两个Senkou Span线组成，即Senkou Span A和Senkou Span B。未来云的颜色也表示价格走势的方向，可以用来预测未来价格趋势。云层和未来云之间的区域称为“云中”，可以用来识别支撑和阻力水平。
+**4. 未来云（Future Cloud）：** 未来云是Ichimoku云中的一部分，通常由两个Senkou Span线组成，即Senkou Span A和Senkou Span B。未来云的颜色也表示价格走势的方向，可以用来预测未来价格趋势。云层和未来云之间的区域称为“云中”也叫雲 kumo (抵抗帯 teikoutai )，可以用来识别支撑和阻力水平。
 
-**5. 延迟线（Chikou Span）：** 延迟线是Ichimoku云的最后一个组成部分，通常表示为橙色线。它是当前收盘价移动到过去26个交易日的线。延迟线用于提供价格走势的确认，当延迟线在云层或未来云之上时，可能表示上升趋势，当它在云层或未来云之下时，可能表示下降趋势。
+**5. 延迟线（遅行スパン Chikou Span）：** 延迟线是Ichimoku云的最后一个组成部分，通常表示为橙色线。它是当前收盘价移动到过去26个交易日的线。延迟线用于提供价格走势的确认，当延迟线在云层或未来云之上时，可能表示上升趋势，当它在云层或未来云之下时，可能表示下降趋势。
 
 Ichimoku云的主要应用包括：
 
