@@ -8543,9 +8543,66 @@ Rust 在编写爬虫时具有以下优势：
 
 总之，Rust 是一种强大的编程语言，可用于编写高性能、可靠和安全的网络爬虫。在编写爬虫程序时，始终要遵循最佳实践和伦理准则，以确保合法性和道德性。
 
-### 案例：在Redis中构建交易日库
+### 补充学习：序列化和反序列化
 
-这个案例演示了如何使用 Rust 编写一个简单的爬虫，从指定的网址获取节假日数据，然后将数据存储到 Redis 数据库中。这个案例涵盖了许多 Rust 的核心概念，包括异步编程、HTTP 请求、JSON 解析、错误处理以及与 Redis 交互等。
+在Rust中，JSON（JavaScript Object Notation）是一种常见的数据序列化和反序列化格式，通常用于在不同的应用程序和服务之间交换数据。Rust提供了一些库来处理JSON数据的序列化和反序列化操作，其中最常用的是`serde`库。
+
+以下是如何在Rust中进行JSON序列化和反序列化的简要介绍：
+
+1. **添加serde库依赖：** 首先，你需要在项目的`Cargo.toml`文件中添加`serde`和`serde_json`依赖，因为`serde_json`是serde的JSON支持库。在`Cargo.toml`中添加如下依赖：
+
+```toml
+[dependencies]
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0"
+```
+
+然后，在你的Rust代码中导入`serde`和`serde_json`：
+
+```rust
+use serde::{Serialize, Deserialize};
+```
+
+2. **定义结构体：** 如果你要将自定义类型序列化为JSON，你需要在结构体上实现`Serialize`和`Deserialize` trait。例如：
+
+```rust
+#[derive(Serialize, Deserialize)]
+struct Person {
+    name: String,
+    age: u32,
+}
+```
+
+3. **序列化为JSON：** 使用`serde_json::to_string`将Rust数据结构序列化为JSON字符串：
+
+```rust
+fn main() {
+    let person = Person {
+        name: "Alice".to_string(),
+        age: 30,
+    };
+
+    let json_string = serde_json::to_string(&person).unwrap();
+    println!("{}", json_string);
+}
+```
+
+4. **反序列化：** 使用`serde_json::from_str`将JSON字符串反序列化为Rust数据结构：
+
+```rust
+fn main() {
+    let json_string = r#"{"name":"Bob","age":25}"#;
+    
+    let person: Person = serde_json::from_str(json_string).unwrap();
+    println!("Name: {}, Age: {}", person.name, person.age);
+}
+```
+
+这只是一个简单的介绍，你可以根据具体的需求进一步探索`serde`和`serde_json`库的功能，以及如何处理更复杂的JSON数据结构和场景。这些库提供了强大的工具，使得在Rust中进行JSON序列化和反序列化变得非常方便。
+
+### 案例：在Redis中构建中国大陆交易日库
+
+这个案例演示了如何使用 Rust 编写一个简单的爬虫，从指定的网址获取中国大陆的节假日数据，然后将数据存储到 Redis 数据库中。这个案例涵盖了许多 Rust 的核心概念，包括异步编程、HTTP 请求、JSON 解析、错误处理以及与 Redis 交互等。
 
 ```rust
 use anyhow::{anyhow, Error as AnyError}; // 导入`anyhow`库中的`anyhow`和`Error`别名为`AnyError`
