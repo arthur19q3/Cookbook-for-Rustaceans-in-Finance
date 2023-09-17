@@ -9405,7 +9405,7 @@ fn main() {
 
 ```
 
-![image-20230917221931208](/home/arthur/.config/Typora/typora-user-images/image-20230917221931208.png)
+![img_2.png](img_2.png)
 
 #  Chapter 24 - 时序数据库Clickhouse【未完成】
 
