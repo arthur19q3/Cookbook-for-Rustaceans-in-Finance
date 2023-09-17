@@ -1,18 +1,18 @@
 
 
-# Rust量化金融开发指南 / Cookbook for Rustaceans in Finance
+# Cookbook for Rustaceans in Finance / Rust量化金融开发指南
 
-/Arthur Zhang
+/Arthur Zhang, 2023
 
-#  Preface
+#  Preface 序
 
 荣幸向社区介绍一点微小的工作。这本书是我经过一年的辛勤工作，整理了开发 Rust 全栈量化金融软件和策略的实践经验，旨在为那些希望进入或已经涉足量化金融领域的 Rust 程序员提供宝贵的参考和洞见。
 
-这本书的初衷是为了向读者提供核心原理和主要步骤的指导，而不是枯燥的详细说明。在已经公开的前 27 章中，你将会找到大量来自实际生产环境的示例代码，这些代码都是极简的工作示例，真实地反映了金融领域中的挑战和 Rust 语言的强大特性。
+这本书的初衷是为了向读者提供核心原理和主要步骤的指导，而不是枯燥的详细说明。在已经公开的前 27 章中，你将会找到大量来自实际生产环境的示例代码，这些代码大都是极简的MWE(minimal working examples)，真实地反映了金融领域中的挑战和 Rust 语言的强大特性。
 
 感谢 Rust 社区和量化金融业界的朋友们，社区的支持和反馈对本书的成长起到了不可或缺的作用。
 
-# Introduction
+# Introduction 简介 
 
 在量化金融领域中，编程语言的选择正在逐年变得重要，而Rust则是一种逐渐受到青睐的编程语言。它独特的特性使其非常适合于在这一领域开发可靠且高效的软件解决方案。
 
@@ -32,7 +32,7 @@ Rust在量化金融中的关键特性有：
 
 
 
-# PART I 基础部分 (Fundamentals of Rust Programming with the context of Quantitative Trading)
+# PART I 基础部分 - 量化语境下的Rust编程基础 (Fundamentals of Rust Programming with the context of Quantitative Trading)
 
 # Chapter 1 -  Rust 语言入门101
 
@@ -8987,7 +8987,7 @@ pub fn delete_folders_with_regex(
 
 
 
-# PART II 量化实战（Rust Quantitative Trading in Actions）
+# PART II 进阶部分 - 量化实战（Rust Quantitative Trading in Actions）
 
 #  Chapter 23 - Polars入门 
 
