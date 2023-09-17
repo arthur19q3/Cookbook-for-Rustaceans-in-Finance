@@ -8,7 +8,7 @@
 
 荣幸向社区介绍一点微小的工作。这本书是我经过一年的辛勤工作，整理了开发 Rust 全栈量化金融软件和策略的实践经验，旨在为那些希望进入或已经涉足量化金融领域的 Rust 程序员提供宝贵的参考和洞见。
 
-这本书的初衷是为了向读者提供核心原理和主要步骤的指导，而不是枯燥的详细说明。在已经公开的前 19 章中，你将会找到大量来自实际生产环境的示例代码，这些代码都是极简的工作示例，真实地反映了金融领域中的挑战和 Rust 语言的强大特性。希望些示例也会激发你的灵感，让你更加熟练地运用 Rust 来解决金融领域的问题。
+这本书的初衷是为了向读者提供核心原理和主要步骤的指导，而不是枯燥的详细说明。在已经公开的前 20 章中，你将会找到大量来自实际生产环境的示例代码，这些代码都是极简的工作示例，真实地反映了金融领域中的挑战和 Rust 语言的强大特性。希望些示例也会激发你的灵感，让你更加熟练地运用 Rust 来解决金融领域的问题。
 
 我要特别感谢 Rust 社区和量化金融业界的朋友们，你们的支持和反馈对本书的成长起到了不可或缺的作用。我欢迎各位的批评指正，也愿意戮力与诸位为量化金融领域构建一个更加强大、更加安全、更加高效的开发生态。
 
@@ -7943,7 +7943,7 @@ fn main() {
 
 元编程，又称超编程，是一种计算机编程的方法，它允许程序操作或生成其他程序，或者在编译时执行一些通常在运行时完成的工作。这种编程方法可以提高编程效率和程序的灵活性，因为它允许程序**动态地生成和修改代码**，而无需手动编写每一行代码。如在Unix Shell中：
 
-1. **代码生成：** 在元编程中，程序可以生成代码片段或整个程序。这对于自动生成重复性高的代码非常有用。例如，在Shell脚本中，您可以使用循环来生成一系列命令，而不必手动编写每个命令。
+1. **代码生成：** 在元编程中，程序可以生成代码片段或整个程序。这对于自动生成重复性高的代码非常有用。例如，在Shell脚本中，你可以使用循环来生成一系列命令，而不必手动编写每个命令。
 
 ```bash
 for i in {1..10}; do
@@ -7963,7 +7963,7 @@ EOF
 
 我们也可以使用Rust的元编程工具来执行这类任务。Rust有一个强大的宏系统，可以用于生成代码和进行元编程。以下是与之前的Shell示例相对应的Rust示例：
 
-1. **代码生成：** 在Rust中，您可以使用宏来生成代码片段。
+1. **代码生成：** 在Rust中，你可以使用宏来生成代码片段。
 
 ```rust
 macro_rules! generate_code {
@@ -7979,7 +7979,7 @@ fn main() {
 }
 ```
 
-2. **模板引擎：** 在Rust中，您可以使用宏来生成配置文件或其他文档。
+2. **模板引擎：** 在Rust中，你可以使用宏来生成配置文件或其他文档。
 
 ```rust
 macro_rules! generate_config {
@@ -8066,7 +8066,7 @@ fn main() {
 
 在上述示例中，我们创建了一个包含价格数据的时间序列`time_series`，并使用`simple_moving_average_strategy!`宏来生成交易信号。如果最后一个价格高于平均值，则宏将生成"Buy"信号，否则生成"Sell"信号。
 
-这只是一个简单的示例，展示了如何使用自定义宏来简化量化金融策略的实现。在实际的金融应用中，您可以使用更复杂的数据处理和策略规则。但这个示例演示了如何使用Rust的宏系统来增强代码的可读性和可维护性。
+这只是一个简单的示例，展示了如何使用自定义宏来简化量化金融策略的实现。在实际的金融应用中，你可以使用更复杂的数据处理和策略规则。但这个示例演示了如何使用Rust的宏系统来增强代码的可读性和可维护性。
 
 # Chapter 19 - 时间处理
 
@@ -8074,7 +8074,7 @@ fn main() {
 
 以下是一些关于在Rust中进行时间处理的详细信息：
 
-#### 19.1 系统时间交互
+### 19.1 系统时间交互
 
 要获取当前时间，可以使用`std::time::SystemTime`结构体和`SystemTime::now()`函数。
 
@@ -8092,7 +8092,7 @@ fn main() {
 Current time: SystemTime { tv_sec: 1694870535, tv_nsec: 559362022 }
 ```
 
-#### 19.2 时间间隔和时间运算
+### 19.2 时间间隔和时间运算
 
 在Rust中，时间间隔通常由`std::time::Duration`结构体表示，它用于表示一段时间的长度。
 
@@ -8129,7 +8129,7 @@ fn main() {
 New time: SystemTime { tv_sec: 1694870769, tv_nsec: 705158112 }
 ```
 
-#### 19.3 格式化时间
+### 19.3 格式化时间
 
 若要将时间以特定格式显示为字符串，可以使用`chrono`库。
 
@@ -8180,20 +8180,171 @@ Weekday: Sat
 
 
 
-这些是Rust中进行时间处理的基本示例。您可以根据具体需求使用这些功能来执行更高级的时间操作，例如计算时间差、定时任务、处理时间戳等等。要了解更多关于时间处理的细节，请查阅Rust官方文档以及`chrono`库的文档。
+这些是Rust中进行时间处理的基本示例。你可以根据具体需求使用这些功能来执行更高级的时间操作，例如计算时间差、定时任务、处理时间戳等等。要了解更多关于时间处理的细节，请查阅Rust官方文档以及`chrono`库的文档。
 
-#### 19.4 时差处理[待更新]
+### 19.4 时差处理
 
+`chrono` 是 Rust 中用于处理日期和时间的库。它提供了强大的日期时间处理功能，可以帮助你执行各种日期和时间操作，包括时差的处理。下面详细解释如何使用 `chrono` 来处理时差。
 
+首先，你需要在 Rust 项目中添加 `chrono` 库的依赖。在 `Cargo.toml` 文件中添加以下内容：
 
+```toml
+[dependencies]
+chrono = "0.4"
+chrono-tz = "0.8.3"
+```
 
+接下来，让我们从一些常见的日期和时间操作开始，以及如何处理时差：
+
+```rust
+use chrono::{DateTime, Utc, TimeZone};  
+use chrono_tz::{Tz, Europe::Berlin, America::New_York};  
+  
+fn main() {  
+    // 获取当前时间，使用UTC时区  
+    let now_utc = Utc::now();  
+    println!("Current UTC Time: {}", now_utc);  
+  
+    // 使用特定时区获取当前时间  
+    let now_berlin: DateTime<Tz> = Utc::now().with_timezone(&Berlin);  
+    println!("Current Berlin Time: {}", now_berlin);  
+  
+    let now_new_york: DateTime<Tz> = Utc::now().with_timezone(&New_York);  
+    println!("Current New York Time: {}", now_new_york);  
+  
+    // 时区之间的时间转换  
+    let berlin_time = now_utc.with_timezone(&Berlin);  
+    let new_york_time = berlin_time.with_timezone(&New_York);  
+    println!("Berlin Time in New York: {}", new_york_time);  
+  
+    // 获取时区信息  
+    let berlin_offset = Berlin.offset_from_utc_datetime(&now_utc.naive_utc());  
+    println!("Berlin Offset: {:?}", berlin_offset);  
+  
+    let new_york_offset = New_York.offset_from_utc_datetime(&now_utc.naive_utc());  
+    println!("New York Offset: {:?}", new_york_offset);  
+}
+
+```
+
+**执行结果**：
+
+```text
+Current UTC Time: 2023-09-17 01:15:56.812663350 UTC
+Current Berlin Time: 2023-09-17 03:15:56.812673617 CEST
+Current New York Time: 2023-09-16 21:15:56.812679483 EDT
+Berlin Time in New York: 2023-09-16 21:15:56.812663350 EDT
+Berlin Offset: CEST
+New York Offset: EDT
+```
+
+#### 补充学习： `with_timezone` 方法
+
+在 `chrono` 中，你可以使用 `with_timezone` 方法将日期时间对象转换为常见的时区。以下是一些常见的时区及其在 `chrono` 中的表示和用法：
+
+1. **UTC（协调世界时）：**
+
+   ```rust
+   use chrono::{DateTime, Utc};
+
+   let utc: DateTime<Utc> = Utc::now();
+   ```
+
+   在 `chrono` 中，`Utc` 是用于表示协调世界时的类型。
+
+2. **本地时区：**
+
+   `chrono` 可以使用操作系统的本地时区。你可以使用 `Local` 来表示本地时区。
+
+   ```rust
+   use chrono::{DateTime, Local};
+
+   let local: DateTime<Local> = Local::now();
+   ```
+
+3. **其他时区：**
+
+   如果你需要表示其他时区，可以使用 `chrono-tz` 库。这个库扩展了 `chrono`，使其支持更多的时区。
+
+   首先，你需要将 `chrono-tz` 添加到你的 `Cargo.toml` 文件中：
+
+   ```toml
+   [dependencies]
+   chrono-tz = "0.8"
+   ```
+
+   创造一个datetime，然后把它转化成一个带时区信息的datetime：
+
+   ```rust
+   use chrono::{TimeZone, NaiveDate};
+   use chrono_tz::Africa::Johannesburg;
+   
+   let naive_dt = NaiveDate::from_ymd(2038, 1, 19).and_hms(3, 14, 08);
+   let tz_aware = Johannesburg.from_local_datetime(&naive_dt).unwrap();
+   assert_eq!(tz_aware.to_string(), "2038-01-19 03:14:08 SAST");
+   ```
+
+   
+
+请注意，`chrono-tz` 可以让我们表示更多的时区，但也会增加项目的依赖和复杂性。根据你的需求，你可以选择使用 `Utc`、`Local` 还是 `chrono-tz` 中的特定时区类型。
+
+如果只需处理常见的 UTC 和本地时区，那么 `Utc` 和 `Local` 就足够了。如果需要更多的时区支持，可以考虑使用 `chrono-tz`，[[chrono-tz官方文档] ](https://docs.rs/chrono-tz/latest/chrono_tz/#modules	)中详细列有可用的时区的模块和常量，有需要可以移步查询。
+
+# Chapter 20 - Redis和爬虫
+
+Redis是一个开源的内存数据库，它可以用于存储和管理数据，通常用作缓存、消息队列、会话存储等用途。Redis支持多种数据结构，包括字符串、列表、集合、有序集合和哈希表。它以其高性能、低延迟和持久性存储特性而闻名，适用于许多应用场景。
+
+Rust是一种系统级编程语言，具有内存安全性、高性能和并发性等特点。将Redis与Rust结合使用可以提供高性能和安全的数据存储和处理能力。下面详细说明如何将Redis与Rust配合使用：
+
+1. 安装Redis客户端库：
+   首先，你需要在Rust项目中引入Redis客户端库，最常用的库是`redis-rs`，可以在Cargo.toml文件中添加以下依赖项：
+
+   ```toml
+   [dependencies]
+   redis = "0.15"
+   ```
+
+   然后运行`cargo build`以安装库。
+
+2. 创建Redis连接：
+   使用Redis客户端库连接到Redis服务器。以下是一个示例：
+
+   ```rust
+   extern crate redis;
+   
+   use redis::Commands;
+   
+   fn main() -> redis::RedisResult<()> {
+       let client = redis::Client::open("redis://127.0.0.1/")?;
+       let con = client.get_connection()?;
+   
+       // 执行Redis命令
+       let _: () = con.set("my_key", "my_value")?;
+       let result: String = con.get("my_key")?;
+   
+       println!("Got value: {}", result);
+   
+       Ok(())
+   }
+   ```
+
+   这个示例首先创建了一个Redis客户端，然后与服务器建立连接，并执行了一些基本的操作。
+
+3. 处理错误：
+   在Rust中，处理错误非常重要，因此需要考虑如何处理Redis操作可能出现的错误。在上面的示例中，我们使用了`?`来处理Redis操作可能引发的错误。你可以根据你的应用程序需求来处理这些错误，例如，记录日志或采取其他适当的措施。
+
+4. 使用异步编程：
+   如果你需要处理大量的并发操作或需要高性能，可以考虑使用Rust的异步编程库，如Tokio或async-std，与异步Redis客户端库配合使用。这将允许你以非阻塞的方式执行Redis操作，以提高性能。
+
+5. 定期清理过期数据：
+   Redis支持过期时间设置，你可以在将数据存储到Redis中时为其设置过期时间。在Rust中，你可以编写定期任务来清理过期数据，以确保Redis中的数据不会无限增长。
+
+总之，将Redis与Rust配合使用可以为你提供高性能、安全的数据存储和处理解决方案。通过使用Rust的强类型和内存安全性，以及Redis的速度和功能，你可以构建可靠的应用程序。当然，在实际应用中，还需要考虑更多细节，如连接池管理、性能优化和错误处理策略，以确保应用程序的稳定性和性能。
 
 # Upcoming Chapters 
 
 
 
-> ####  Chapter 20 - Redis和爬虫
->
 > ####  Chapter 21 - 线程和管道
 >
 > ####  Chapter 22 -  文件处理
