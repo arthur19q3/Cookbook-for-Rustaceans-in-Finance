@@ -8292,31 +8292,77 @@ New York Offset: EDT
 
 # Chapter 20 - Redis和爬虫
 
-Redis是一个开源的内存数据库，它可以用于存储和管理数据，通常用作缓存、消息队列、会话存储等用途。Redis支持多种数据结构，包括字符串、列表、集合、有序集合和哈希表。它以其高性能、低延迟和持久性存储特性而闻名，适用于许多应用场景。
+### 20.1 Redis入门
 
-Rust是一种系统级编程语言，具有内存安全性、高性能和并发性等特点。将Redis与Rust结合使用可以提供高性能和安全的数据存储和处理能力。下面详细说明如何将Redis与Rust配合使用：
+Redis是一个开源的内存内(In-Memory)数据库，它可以用于存储和管理数据，通常用作缓存、消息队列、会话存储等用途。Redis支持多种数据结构，包括字符串、列表、集合、有序集合和哈希表。它以其高性能、低延迟和持久性存储特性而闻名，适用于许多应用场景。
+
+#### 20.1.1 安装、配置Redis
+
+大多数主流的Linux发行版都提供了Redis的软件包。
+
+##### 在Ubuntu/Debian上安装
+
+您可以从官方的`packages.redis.io` APT存储库安装最新的稳定版本的Redis。
+
+先决条件
+
+如果您正在运行一个非常精简的发行版（比如Docker容器），您可能需要首先安装`lsb-release`、`curl`和`gpg`。
+
+```bash
+sudo apt install lsb-release curl gpg
+```
+
+将该存储库添加到`apt`索引中，然后更新索引，最后进行安装：
+
+```bash
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+
+sudo apt-get update
+sudo apt-get install redis
+```
+
+##### 在Manjaro/Archlinux上安装
+
+```shell
+sudo pacman -S redis
+```
+
+##### 用户界面
+
+除了传统的CLI以外，Redis还提供了图形化前端 [RedisInsight](https://redis.com/redis-enterprise/redis-insight/) 方便直观查看：
+
+![image-20230917094756439](/home/arthur/.config/Typora/typora-user-images/image-20230917094756439.png)
+
+下面我们会演示如何为通过Rust和Redis的Rust客户端来插入图示的这对键值对。
+
+### 20.2 在Rust中使用Redis客户端
+
+将Redis与Rust结合使用可以提供高性能和安全的数据存储和处理能力。下面详细说明如何将Redis与Rust配合使用：
 
 1. 安装Redis客户端库：
    首先，你需要在Rust项目中引入Redis客户端库，最常用的库是`redis-rs`，可以在Cargo.toml文件中添加以下依赖项：
 
    ```toml
    [dependencies]
-   redis = "0.15"
+   redis = "0.23"
+   tokio = { version = "1.29.1", features = ["full"] }
    ```
-
+   
    然后运行`cargo build`以安装库。
-
-2. 创建Redis连接：
+   
+2. 创建Redis连接
    使用Redis客户端库连接到Redis服务器。以下是一个示例：
 
    ```rust
-   extern crate redis;
-   
    use redis::Commands;
    
-   fn main() -> redis::RedisResult<()> {
-       let client = redis::Client::open("redis://127.0.0.1/")?;
-       let con = client.get_connection()?;
+   #[tokio::main]
+   async fn main() -> redis::RedisResult<()> {
+       let redis_url = "redis://:@127.0.0.1:6379/0";
+       let client = redis::Client::open(redis_url)?;
+       let mut con = client.get_connection()?;
    
        // 执行Redis命令
        let _: () = con.set("my_key", "my_value")?;
