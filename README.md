@@ -5011,16 +5011,14 @@ fn main() {
 2. 导入 `rayon` crate：
 
    ```rust
-   extern crate rayon;
    use rayon::prelude::*;
    ```
-
+   
 3. 使用 `.par_iter()` 方法将集合转换为并发迭代器。然后，你可以调用 `.for_each()`、`.map()`、`.filter()` 等方法来进行并行操作。
 
 以下是一个金融案例，演示如何使用并发迭代器计算多个账户的总余额。每个账户包含一组交易记录，每个记录都有交易类型（存款或提款）和金额。我们将并行计算每个账户的总余额，然后计算所有账户的总余额。
 
 ```rust
-extern crate rayon;
 use rayon::prelude::*;
 
 struct Transaction {
@@ -5895,9 +5893,6 @@ rand = "0.8"
 
 ```rust
 // src/bin/monte_carlo.rs
-
-extern crate rand;
-
 use rand::Rng;
 use std::env;
 
@@ -9525,8 +9520,6 @@ fn main() {
 以下是一个示例，展示了如何使用 `unsafe` 来执行矩阵操作：
 
 ```rust
-extern crate ndarray;
-
 use ndarray::{Array2, Axis, s};
 
 fn main() {
