@@ -8333,7 +8333,7 @@ sudo pacman -S redis
 
 除了传统的CLI以外，Redis还提供了图形化前端 [RedisInsight](https://redis.com/redis-enterprise/redis-insight/) 方便直观查看：
 
-![redisinsight界面](/home/arthur/.config/Typora/typora-user-images/image-20230917095054994.png)
+![img.png](img.png)
 
 下面我们会演示如何为通过Rust和Redis的Rust客户端来插入图示的这对键值对。
 
