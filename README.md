@@ -8,9 +8,9 @@
 
 荣幸向社区介绍一点微小的工作。这本书是我经过一年的辛勤工作，整理了开发 Rust 全栈量化金融软件和策略的实践经验，旨在为那些希望进入或已经涉足量化金融领域的 Rust 程序员提供宝贵的参考和洞见。
 
-这本书的初衷是为了向读者提供核心原理和主要步骤的指导，而不是枯燥的详细说明。在已经公开的前 20 章中，你将会找到大量来自实际生产环境的示例代码，这些代码都是极简的工作示例，真实地反映了金融领域中的挑战和 Rust 语言的强大特性。希望些示例也会激发你的灵感，让你更加熟练地运用 Rust 来解决金融领域的问题。
+这本书的初衷是为了向读者提供核心原理和主要步骤的指导，而不是枯燥的详细说明。在已经公开的前 20 章中，你将会找到大量来自实际生产环境的示例代码，这些代码都是极简的工作示例，真实地反映了金融领域中的挑战和 Rust 语言的强大特性。
 
-我要特别感谢 Rust 社区和量化金融业界的朋友们，你们的支持和反馈对本书的成长起到了不可或缺的作用。我欢迎各位的批评指正，也愿意戮力与诸位为量化金融领域构建一个更加强大、更加安全、更加高效的开发生态。
+感谢 Rust 社区和量化金融业界的朋友们，社区的支持和反馈对本书的成长起到了不可或缺的作用。
 
 # Introduction
 
@@ -8545,90 +8545,80 @@ Rust 在编写爬虫时具有以下优势：
 
 总之，Rust 是一种强大的编程语言，可用于编写高性能、可靠和安全的网络爬虫。在编写爬虫程序时，始终要遵循最佳实践和伦理准则，以确保合法性和道德性。
 
-### 案例：在Redis中构建交易日库[待测试]
+### 案例：在Redis中构建交易日库
 
 这个案例演示了如何使用 Rust 编写一个简单的爬虫，从指定的网址获取节假日数据，然后将数据存储到 Redis 数据库中。这个案例涵盖了许多 Rust 的核心概念，包括异步编程、HTTP 请求、JSON 解析、错误处理以及与 Redis 交互等。
 
 ```rust
-use anyhow::{anyhow, Error as AnyError};
-use chrono::{Datelike, Duration, NaiveDate, Weekday};
-use once_cell::sync::Lazy;
-use once_cell::unsync::OnceCell;
-use redis::{Client, Commands};
-use reqwest::Client as ReqwestClient;
-use serde::{Deserialize, Serialize};
-use std::error::Error;
-use std::fs::File;
-use std::io::Write;
-use std::sync::atomic::{AtomicPtr, Ordering};
-use std::sync::Arc;
-use std::sync::Mutex;
-use tokio::runtime::Runtime;
-use tokio::sync::RwLock;
+use anyhow::{anyhow, Error as AnyError}; // 导入`anyhow`库中的`anyhow`和`Error`别名为`AnyError`
+use redis::{Commands}; // 导入`redis`库中的`Commands`
+use reqwest::Client as ReqwestClient; // 导入`reqwest`库中的`Client`别名为`ReqwestClient`
+use serde::{Deserialize, Serialize}; // 导入`serde`库中的`Deserialize`和`Serialize`
+use std::error::Error; // 导入标准库中的`Error`
 
 #[derive(Debug, Serialize, Deserialize)]
 struct DayType {
-    date: i32,
+    date: i32, // 定义一个结构体`DayType`，用于表示日期
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct HolidaysType {
-    cn: Vec<DayType>,
+    cn: Vec<DayType>, // 定义一个结构体`HolidaysType`，包含一个日期列表
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CalendarBody {
-    holidays: Option<HolidaysType>,
+    holidays: Option<HolidaysType>, // 定义一个结构体`CalendarBody`，包含一个可选的`HolidaysType`字段
 }
 
-// cache building up
-static HOLIDAYS_LIST: Lazy<Option<Vec<u32>>> = Lazy::new(|| None);
-static HOLIDAYS_LIST_CACHE: Lazy<AtomicPtr<Option<Vec<u32>>>> =
-    Lazy::new(|| AtomicPtr::new(std::ptr::null_mut()));
-
+// 异步函数，用于获取API数据并存储到Redis
 async fn store_calendar_to_redis() -> Result<(), AnyError> {
-    let url = "http://pc.suishenyun.net/peacock/api/h5/festival";
-    let client = ReqwestClient::new();
-    let response = client.get(url).send().await?;
-    let body_s = response.text().await?;
+    let url = "http://pc.suishenyun.net/peacock/api/h5/festival"; // API的URL
+    let client = ReqwestClient::new(); // 创建一个Reqwest HTTP客户端
+    let response = client.get(url).send().await?; // 发送HTTP GET请求并等待响应
+    let body_s = response.text().await?; // 读取响应体的文本数据
+
+    // 将API响应的JSON字符串解析为CalendarBody结构体
     let cb: CalendarBody = match serde_json::from_str(&body_s) {
-        Ok(cb) => cb,
-        Err(e) => return Err(anyhow!("Failed to parse JSON string: {}", e)),
+        Ok(cb) => cb, // 解析成功，得到CalendarBody结构体
+        Err(e) => return Err(anyhow!("Failed to parse JSON string: {}", e)), // 解析失败，返回错误
     };
 
-    if let Some(holidays) = cb.holidays {
-        let days = holidays.cn;
-        let mut dates = Vec::new();
+    if let Some(holidays) = cb.holidays { // 如果存在节假日数据
+        let days = holidays.cn; // 获取日期列表
+        let mut dates = Vec::new(); // 创建一个空的日期向量
+
         for day in days {
-            dates.push(day.date as u32);
+            dates.push(day.date as u32); // 将日期添加到向量中，转换为u32类型
         }
 
-        let redis_url = "redis://:@127.0.0.1:6379/0";
-        let client = redis::Client::open(redis_url)?;
-        let con = client.get_connection()?;
+        let redis_url = "redis://:@127.0.0.1:6379/0"; // Redis服务器的连接URL
+        let client = redis::Client::open(redis_url)?; // 打开Redis连接
+        let mut con = client.get_connection()?; // 获取Redis连接
 
-        // Add each date to the Redis set
+        // 将每个日期添加到Redis集合中
         for date in &dates {
-            let _: usize = con.sadd("holidays_set", date.to_string()).unwrap();
+            let _: usize = con.sadd("holidays_set", date.to_string()).unwrap(); // 添加日期到Redis集合
         }
 
-        Ok(())
+        Ok(()) // 操作成功，返回Ok(())
     } else {
-        Err(anyhow!("No holiday data found."))
+        Err(anyhow!("No holiday data found.")) // 没有节假日数据，返回错误
     }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    // 调用存储数据到 Redis 的函数
+    // 调用存储数据到Redis的函数
     if let Err(err) = store_calendar_to_redis().await {
-        eprintln!("Error: {}", err);
+        eprintln!("Error: {}", err); // 打印错误信息
     } else {
-        println!("Holiday data stored in Redis successfully.");
+        println!("Holiday data stored in Redis successfully."); // 打印成功消息
     }
 
-    Ok(())
+    Ok(()) // 返回Ok(())
 }
+
 ```
 
 **案例要点：**
