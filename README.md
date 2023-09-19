@@ -9435,6 +9435,132 @@ ClickHouse 是一个开源的列式时序数据库管理系统（DBMS），专�
 
 ClickHouse 在大数据分析、日志处理、事件追踪、时序数据分析等场景中得到了广泛的应用。它的高性能、可扩展性和强大的查询功能使其成为处理大规模数据的理想选择。如果你需要处理大量时序数据并进行快速数据分析，那么 ClickHouse 可能是一个非常有价值的数据库管理系统。
 
+### 24.1 安装和配置ClickHouse数据库
+
+### 24.1.1 安装
+
+#### 在Ubuntu上安装ClickHouse：
+
+1. 打开终端并更新包列表：
+
+   ```
+   sudo apt update
+   ```
+
+2. 安装ClickHouse的APT存储库：
+
+   ```
+   sudo apt install apt-transport-https ca-certificates dirmngr
+   sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E0C56BD4
+   echo "deb https://repo.clickhouse.tech/deb/stable/ main/" | sudo tee /etc/apt/sources.list.d/clickhouse.list
+   ```
+
+3. 再次更新包列表以获取ClickHouse包：
+
+   ```
+   sudo apt update
+   ```
+
+4. 安装ClickHouse Server：
+
+   ```
+   sudo apt install clickhouse-server
+   ```
+
+5. 启动ClickHouse服务：
+
+   ```
+   sudo service clickhouse-server start
+   ```
+
+6. 我们可以使用以下命令检查ClickHouse服务器的状态：
+
+   ```
+   sudo service clickhouse-server status
+   ```
+
+#### 在Manjaro / Arch Linux上安装ClickHouse：
+
+1. 打开终端并使用以下命令安装ClickHouse：
+
+   ```
+   sudo pacman -S clickhouse
+   ```
+
+2. 启动ClickHouse服务：
+
+   ```
+   sudo systemctl start clickhouse-server
+   ```
+
+3. 我们可以使用以下命令检查ClickHouse服务器的状态：
+
+   ```
+   sudo systemctl status clickhouse-server
+   ```
+
+这样ClickHouse就已经安装在你的Ubuntu或Arch Linux系统上了，并且服务已启动。
+
+此时如果我们如果访问本地host上的这个网址：http://localhost:8123 ，会看到服务器返回了一个'Ok'给我们。
+
+#### 24.1.2 配置clickhouse的密码
+
+还是不要忘记，生产环境中安全是至关重要的，在ClickHouse中配置密码需要完成以下步骤：
+
+1. **创建用户和设置密码**：
+   首先，我们需要登录到ClickHouse服务器上，并使用管理员权限创建用户并设置密码。我们可以使用ClickHouse客户端或者通过在配置文件中执行SQL来完成这一步骤。
+
+   使用ClickHouse客户端：
+
+   ```sql
+   CREATE USER 'your_username' IDENTIFIED BY 'your_password';
+   ```
+
+   请将 `'your_username'` 替换为我们要创建的用户名，将 `'your_password'` 替换为用户的密码。
+
+2. **分配权限**：
+   创建用户后，需要分配相应的权限。通常，我们可以使用`GRANT`语句来为用户分配权限。以下是一个示例，将允许用户对特定表执行SELECT操作：
+
+   ```sql
+   GRANT SELECT ON database_name.table_name TO 'your_username';
+   ```
+
+   这将授予 `'your_username'` 用户对 `'database_name.table_name'` 表的SELECT权限。我们可以根据需要为用户分配不同的权限。
+
+3. **配置ClickHouse服务**：
+   接下来，我们需要配置ClickHouse服务器以启用身份验证。在ClickHouse的配置文件中，找到并编辑`users.xml`文件。通常，该文件的位置是`/etc/clickhouse-server/users.xml`。在该文件中，我们可以为刚刚创建的用户添加相应的配置。
+
+   ```xml
+   <yandex>
+       <profiles>
+           <!-- 添加用户配置 -->
+           <your_username>
+               <password>your_password</password>
+               <networks>
+                   <ip>::/0</ip> <!-- 允许所有IP连接 -->
+               </networks>
+           </your_username>
+       </profiles>
+   </yandex>
+   ```
+
+   请注意，这只是一个示例配置，我们需要将 `'your_username'` 和 `'your_password'` 替换为实际的用户名和密码。此外，上述配置允许来自所有IP地址的连接，这可能不是最安全的配置。我们可以根据需要限制连接的IP地址范围。
+
+4. **重启ClickHouse服务**：
+   最后，重新启动ClickHouse服务器以使配置更改生效：
+
+   ```bash
+   sudo systemctl restart clickhouse-server
+   ```
+
+   这会重新加载配置文件并应用新的用户和权限设置。
+
+完成上述步骤后，我们的ClickHouse服务器将配置了用户名和密码的身份验证机制，并且只有具有正确凭据的用户才能访问相应的数据库和表。请确保密码强度足够，以增强安全性。
+
+### 24.2 ClickHouse for Rust: clickhouse-rs库【未完成】
+
+### 24.3备份ClickHouse【未完成】
+
 ### 案例 在Clickhouse数据库中建表、删表、查询【未完成】
 
 #   Chapter 25 - Unsafe
@@ -10251,11 +10377,11 @@ Ichimoku云的主要应用包括：
 
 判断这些指标在回测中的表现需要进行系统性的分析和评估。以下是一些步骤，未来会帮助我们来评估指标在回测中的表现：
 
-1. **选择回测平台和数据源：** 首先，选择一个可信赖的回测平台或软件，并获取高质量的历史市场数据。确保您的回测环境与实际交易条件尽可能一致。
-2. **制定明确的交易策略：** 在回测之前，明确定义您的交易策略，包括入场规则、出场规则、止损和止盈策略，以及资本管理规则。确保策略清晰且可操作。
-3. **回测参数设置：** 针对每个指标，设置适当的参数值。例如，对于RSI，您可以测试不同的周期（通常是14天），并确定哪个周期在历史数据上表现最好。
+1. **选择回测平台和数据源：** 首先，选择一个可信赖的回测平台或软件，并获取高质量的历史市场数据。确保我们的回测环境与实际交易条件尽可能一致。
+2. **制定明确的交易策略：** 在回测之前，明确定义我们的交易策略，包括入场规则、出场规则、止损和止盈策略，以及资本管理规则。确保策略清晰且可操作。
+3. **回测参数设置：** 针对每个指标，设置适当的参数值。例如，对于RSI，我们可以测试不同的周期（通常是14天），并确定哪个周期在历史数据上表现最好。
 4. **回测时间段：** 选择一个适当的回测时间段，可以是几年或更长时间的历史数据。确保涵盖不同市场情况，包括趋势市和横盘市。
-5. **执行回测：** 使用所选的回测平台执行回测，根据您的策略和参数值生成交易信号，并模拟实际交易。记录每笔交易的入场和出场价格、止损和止盈水平，以及交易成本（如手续费和滑点）。
+5. **执行回测：** 使用所选的回测平台执行回测，根据我们的策略和参数值生成交易信号，并模拟实际交易。记录每笔交易的入场和出场价格、止损和止盈水平，以及交易成本（如手续费和滑点）。
 7. **绩效度量：** 评估回测的绩效。常见的绩效度量包括：
    - **累积回报率（Cumulative Returns）：** 查看策略的总回报。
    - **胜率（Win Rate）：** 计算获利交易的比例。
@@ -10266,7 +10392,7 @@ Ichimoku云的主要应用包括：
 8. **风险管理：** 在回测中也要考虑风险管理策略，如止损和止盈水平的设置，以及头寸规模的管理。
 10. **实时模拟测试：** 最后，在回测表现良好后，进行实时模拟测试以验证策略在实际市场条件下的表现。
 
-不过最好还是要有这个意识——回测是一种有限制的模拟，不能保证未来表现与历史表现相同。市场条件会不断变化，因此，我建议我们应该将回测作为策略开发的一部分，而不是最终的唯一决策依据。此外，在未来我们要持续注意避免过度拟合（过度优化）的问题，不要过于依赖特定的参数组合，而是寻找稳健的策略。最好的方法是持续监测和优化您的交易策略，以适应不断变化的市场。
+不过最好还是要有这个意识——回测是一种有限制的模拟，不能保证未来表现与历史表现相同。市场条件会不断变化，因此，我建议我们应该将回测作为策略开发的一部分，而不是最终的唯一决策依据。此外，在未来我们要持续注意避免过度拟合（过度优化）的问题，不要过于依赖特定的参数组合，而是寻找稳健的策略。最好的方法是持续监测和优化我们的交易策略，以适应不断变化的市场。
 
 # Upcoming Chapters 
 
