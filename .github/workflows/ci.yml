@@ -21,7 +21,7 @@ jobs:
       - name: Install and Build
         run: |
           npm i -g pnpm
-          pnpm Install
+          pnpm install
           pnpm run build
         env:
           NODE_OPTIONS: '--max_old_space_size=4096'
