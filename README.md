@@ -9849,7 +9849,214 @@ SETTINGS index_granularity = 8192,
 
 通过合理的硬件配置、优化查询和数据模型设计，以及持续的监控和维护，ClickHouse 可以在量化金融领域中提供卓越的性能和可靠性，支持高频交易、实时数据分析等应用场景。
 
-### 案例 通过Rust脚本在Clickhouse数据库中建表、删表、查询【未完成】
+### 案例1 通过Rust脚本在Clickhouse数据库中建表、删表、查询
+
+在量化金融领域中，使用 Rust 脚本管理 ClickHouse 数据库可以实现高效的数据处理和管理。以下是一个基本案例 。
+
+#### 准备工作
+
+首先，确保在你的 `Cargo.toml` 中添加 `clickhouse` 依赖：
+
+```toml
+[dependencies]
+clickhouse = { default-features = false, version = "0.11.6" }
+```
+
+#### 创建 ClickHouse 客户端
+
+定义并初始化一个 ClickHouse 客户端：
+
+```rust
+use clickhouse::{Client, Row};
+use lazy_static::lazy_static;
+
+lazy_static! {
+    pub static ref CLICKHOUSE_CLIENT: ClickHouseClient = ClickHouseClient::new();
+}
+
+pub struct ClickHouseClient {
+    pub client: Client,
+}
+
+impl ClickHouseClient {
+    pub fn new() -> Self {
+        let client = Client::default().with_url("http://localhost:8123").with_database("default");
+        ClickHouseClient { client }
+    }
+}
+```
+
+#### 创建表
+
+创建一个新的表 `market_data`：
+
+```rust
+impl ClickHouseClient {
+    pub async fn create_table(&self) -> Result<(), clickhouse::error::Error> {
+        let query = r#"
+            CREATE TABLE market_data (
+                date Date,
+                symbol String,
+                price Float64,
+                volume UInt64
+            ) ENGINE = MergeTree()
+            PARTITION BY date
+            ORDER BY (symbol, date)
+        "#;
+
+        self.client.query(query).execute().await
+    }
+}
+```
+
+#### 删除表
+
+删除一个已存在的表：
+
+```rust
+impl ClickHouseClient {
+    pub async fn drop_table(&self, table_name: &str) -> Result<(), clickhouse::error::Error> {
+        let query = format!("DROP TABLE IF EXISTS {}", table_name);
+        self.client.query(&query).execute().await
+    }
+}
+```
+
+#### 查询数据
+
+从表中查询数据：
+
+```rust
+#[derive(Debug, Serialize, Deserialize, Row)]
+pub struct MarketData {
+    pub date: String,
+    pub symbol: String,
+    pub price: f64,
+    pub volume: u64,
+}
+
+impl ClickHouseClient {
+    pub async fn query_data(&self) -> Result<Vec<MarketData>, clickhouse::error::Error> {
+        let query = "SELECT * FROM market_data LIMIT 10";
+        let result = self.client.query(query).fetch_all::<MarketData>().await?;
+        Ok(result)
+    }
+}
+```
+
+#### 示例用法
+
+完整的示例代码展示了如何使用这些功能：
+
+```rust
+#[tokio::main]
+async fn main() -> Result<(), clickhouse::error::Error> {
+    let client = ClickHouseClient::new();
+
+    // 创建表
+    client.create_table().await?;
+    println!("Table created successfully.");
+
+    // 查询数据
+    let data = client.query_data().await?;
+    for row in data {
+        println!("{:?}", row);
+    }
+
+    // 删除表
+    client.drop_table("market_data").await?;
+    println!("Table dropped successfully.");
+
+    Ok(())
+}
+```
+
+通过这个基本教程，你可以在 Rust 脚本中实现对 ClickHouse 数据库的基本管理操作。这些示例代码可以根据具体需求进行扩展和优化，以满足量化金融领域的复杂数据处理需求。
+
+
+
+### 案例2 创建布林带表的 SQL 脚本示例
+
+本案例展示如何利用 Rust 脚本与 ClickHouse 交互，计算布林带 (Bollinger Bands) 和其他技术指标，帮助金融分析师和量化交易员优化他们的交易策略。
+
+```sql
+-- 创建名为 AG2305_TEST 的表，使用 MergeTree 引擎
+CREATE TABLE AG2305_TEST
+    ENGINE = MergeTree()
+        ORDER BY (minute, mean_lastprice) -- 按 minute 和 mean_lastprice 排序
+AS
+-- 从子查询中选择字段
+SELECT outer_query.minute,
+       CAST(outer_query.mean_lastprice AS Float32) AS mean_lastprice, -- 将 mean_lastprice 转换为 Float32 类型
+       CAST(sma AS Float32)                        AS sma,           -- 将 sma 转换为 Float32 类型
+       CAST(stddev AS Float32)                     AS stddev,        -- 将 stddev 转换为 Float32 类型
+       CAST(upper AS Float32)                      AS upper,         -- 将 upper 转换为 Float32 类型
+       CAST(lower AS Float32)                      AS lower,         -- 将 lower 转换为 Float32 类型
+       CAST(super_upper AS Float32)                AS super_upper,   -- 将 super_upper 转换为 Float32 类型
+       CAST(super_lower AS Float32)                AS super_lower,   -- 将 super_lower 转换为 Float32 类型
+       CAST(ssuper_upper AS Float32)               AS ssuper_upper,  -- 将 ssuper_upper 转换为 Float32 类型
+       CAST(ssuper_lower AS Float32)               AS ssuper_lower,  -- 将 ssuper_lower 转换为 Float32 类型
+       CASE
+           -- 根据价格突破的不同情况赋值 bollinger_band_status
+           WHEN super_upper > mean_lastprice AND mean_lastprice > upper THEN 1 -- 向上突破2个标准差
+           WHEN super_lower < mean_lastprice AND mean_lastprice < lower THEN 2 -- 向下突破2个标准差
+           WHEN ssuper_upper > mean_lastprice AND mean_lastprice > super_upper THEN 3 -- 向上突破4个标准差
+           WHEN ssuper_lower < mean_lastprice AND mean_lastprice < super_lower THEN 4 -- 向下突破4个标准差
+           WHEN mean_lastprice > ssuper_upper THEN 5 -- 向上突破5个标准差
+           WHEN mean_lastprice < ssuper_lower AND upper != lower THEN 6 -- 向下突破5个标准差
+           ELSE 0 -- 在布林带内及其他情况
+       END AS bollinger_band_status
+FROM (
+    -- 从内层查询中选择字段
+    SELECT subquery.minute,
+           subquery.mean_lastprice,
+           subquery.start_time,
+           -- 计算简单移动平均线 (SMA)
+           avg(subquery.mean_lastprice)
+               OVER (PARTITION BY subquery.start_time ORDER BY subquery.minute ASC) AS sma,
+           -- 计算标准差
+           stddevPop(subquery.mean_lastprice)
+               OVER (PARTITION BY subquery.start_time ORDER BY subquery.minute ASC) AS stddev,
+           -- 计算布林带上下轨
+           sma + 1.5 * stddevPop(subquery.mean_lastprice)
+               OVER (PARTITION BY subquery.start_time ORDER BY subquery.minute ASC) AS upper,
+           sma - 1.5 * stddevPop(subquery.mean_lastprice)
+               OVER (PARTITION BY subquery.start_time ORDER BY subquery.minute ASC) AS lower,
+           -- 计算更高和更低的布林带轨道
+           sma + 3 * stddevPop(subquery.mean_lastprice)
+               OVER (PARTITION BY subquery.start_time ORDER BY subquery.minute ASC) AS super_upper,
+           sma - 3 * stddevPop(subquery.mean_lastprice)
+               OVER (PARTITION BY subquery.start_time ORDER BY subquery.minute ASC) AS super_lower,
+           sma + 4 * stddevPop(subquery.mean_lastprice)
+               OVER (PARTITION BY subquery.start_time ORDER BY subquery.minute ASC) AS ssuper_upper,
+           sma - 4 * stddevPop(subquery.mean_lastprice)
+               OVER (PARTITION BY subquery.start_time ORDER BY subquery.minute ASC) AS ssuper_lower
+    FROM (
+        -- 最内层查询，按分钟聚合数据并计算均价
+        SELECT toStartOfMinute(datetime) AS minute,
+               AVG(lastprice)            AS mean_lastprice,
+               -- 计算开始时间，根据 datetime 决定是当前日期的 21 点还是前一天的 21 点
+               CASE
+                   WHEN toHour(datetime) < 21 THEN toDate(datetime) - INTERVAL 1 DAY + INTERVAL 21 HOUR
+                   ELSE toDate(datetime) + INTERVAL 21 HOUR
+               END AS start_time
+        FROM futures.AG2305
+        GROUP BY minute, start_time
+    ) subquery
+) outer_query
+ORDER BY outer_query.minute;
+```
+
+### 脚本解析
+
+1. **创建表**：使用 MergeTree 引擎创建表 `AG2305_TEST`，并按 `minute` 和 `mean_lastprice` 排序。
+2. **选择字段**：从内部查询中选择字段并进行类型转换。
+3. **布林带状态**：根据价格与布林带上下轨的关系，确定 `bollinger_band_status` 的值。
+4. **内部查询**：
+    - **子查询**：聚合每分钟的平均价格 `mean_lastprice`，并计算开始时间 `start_time`。
+    - **布林带计算**：计算简单移动平均线（SMA）和不同标准差倍数的上下轨。
+
+通过这个逐行注释的 SQL 脚本，可以更好地理解如何在 ClickHouse 中创建复杂的计算表，并应用于量化金融领域的数据处理。
 
 #   Chapter 25 - Unsafe
 
@@ -10684,24 +10891,23 @@ Ichimoku云的主要应用包括：
 
 # Upcoming Chapters 
 
-> #### Chapter 28 统计模型
+> #### Chapter 28 - 统计模型
 >
 > ####  Chapter 29 - 引擎系统
 >
 > ####  Chapter 30 - 日志系统
 >
-> ####  Chapter 31 投资组合管理
+> ####  Chapter 31 - 投资组合管理
 >
-> ####  Chapter 32 量化计量经济学
+> ####  Chapter 32 - 量化计量经济学
 >
-> ####  Chapter 33 限价指令簿
+> ####  Chapter 33 - 限价指令簿
 >
-> ####  Chapter 34 最优配置和执行
+> ####  Chapter 34 - 最优配置和执行
 >
-> ####  Chapter 35 信息学、监管、风控
+> ####  Chapter 35 - 风险控制策略
 >
-> ####  Chapter 36 机器学习
->
+> ####  Chapter 36 - 机器学习
 
 
 
