@@ -9557,9 +9557,87 @@ ClickHouse 在大数据分析、日志处理、事件追踪、时序数据分析
 
 完成上述步骤后，我们的ClickHouse服务器将配置了用户名和密码的身份验证机制，并且只有具有正确凭据的用户才能访问相应的数据库和表。请确保密码强度足够，以增强安全性。
 
-### 24.2 ClickHouse for Rust: clickhouse-rs库【未完成】
+### 24.2 ClickHouse for Rust: clickhouse.rs库
 
-### 24.3备份ClickHouse【未完成】
+`clickhouse.rs` 是一个网友 Paul Loyd 开发的比较成熟的第三方 Rust 库，旨在与 ClickHouse 数据库进行交互，提供了便捷的查询执行、数据处理和连接管理功能。以下是该库的一些主要特点：
+
+#### 主要特点
+
+1. **异步支持**：`clickhouse.rs` 利用了 Rust 的异步编程能力，非常适合需要非阻塞数据库操作的高性能应用程序。
+2. **类型化接口**：该库提供了强类型接口，使数据库交互更加安全和可预测，减少运行时错误并提高代码的健壮性。
+3. **支持 ClickHouse 特性**：库支持多种 ClickHouse 特性，包括批量插入、复杂查询和不同的数据类型。
+4. **连接池**：`clickhouse.rs` 包含连接池功能，在高负载场景下实现高效的数据库连接管理。
+5. **易用性**：该库设计简洁明了的 API，使各级 Rust 开发者都能轻松上手。
+
+#### 安装
+
+要使用 `clickhouse.rs`，需要在 `Cargo.toml` 中添加依赖项：
+
+```toml
+[dependencies]
+clickhouse = "0.4"  # 请确保使用最新版本
+```
+
+#### 基本用法
+
+以下是使用 `clickhouse.rs` 连接 ClickHouse 数据库并执行查询的简单示例：
+
+```rust
+use clickhouse::{Client, Row};
+use futures::stream::StreamExt;
+use tokio;
+
+#[tokio::main]
+async fn main() {
+    // 初始化客户端
+    let client = Client::default()
+        .with_url("http://localhost:8123")
+        .with_database("default");
+
+    // 执行查询示例
+    let mut cursor = client.query("SELECT number FROM system.numbers LIMIT 10").fetch().unwrap();
+    while let Some(row) = cursor.next().await {
+        let number: u64 = row.unwrap().get("number").unwrap();
+        println!("{}", number);
+    }
+}
+```
+
+#### 错误处理
+
+该库使用标准的 Rust 错误处理机制，使得管理潜在问题变得简单。以下是处理查询执行错误的示例：
+
+```rust
+use clickhouse::{Client, Error};
+use tokio;
+
+#[tokio::main]
+async fn main() -> Result<(), Error> {
+    let client = Client::default().with_url("http://localhost:8123");
+
+    let result = client.query("SELECT number FROM system.numbers LIMIT 10")
+        .fetch()
+        .await;
+
+    match result {
+        Ok(mut cursor) => {
+            while let Some(row) = cursor.next().await {
+                let number: u64 = row.unwrap().get("number").unwrap();
+                println!("{}", number);
+            }
+        }
+        Err(e) => eprintln!("查询执行错误: {:?}", e),
+    }
+
+    Ok(())
+}
+```
+
+#### 高级用法
+
+对于批量插入或处理特定数据类型等复杂场景，请参阅库的文档和示例。该库支持多种 ClickHouse 特性，可以适应各种使用场景。
+
+### 24.3 备份ClickHouse【未完成】
 
 ### 案例 在Clickhouse数据库中建表、删表、查询【未完成】
 
