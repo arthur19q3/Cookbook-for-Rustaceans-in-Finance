@@ -1,6 +1,6 @@
 # PART II 进阶部分 - 量化实战（Rust Quantitative Trading in Actions）
 
-# Chapter 23 用Polars实现并加速数据框架处理【未完成】
+# Chapter 23 用Polars实现并加速数据框架处理
 
 ## 23.1 Rust与数据框架处理工具Polars
 
@@ -855,7 +855,7 @@ shape: (2, 3)
 
 
 
-## 23.3 Polars进阶学习 【未完成】
+## 23.3 Polars进阶学习
 
 ### 23.3.1 聚合操作 Aggregation
 
@@ -1860,7 +1860,143 @@ let mean_nan_df = nan_df
 
 ### 23.3.8 窗口函数 Window functions
 
+## 窗口函数
 
+窗口函数是带有超级功能的表达式。它们允许您在选择上下文中对分组进行聚合。首先，我们创建一个数据集。在下面的代码片段中加载的数据集包含一些关于金融股票的信息：
+
+### 数据集示例
+
+```rust
+use polars::prelude::*;
+use reqwest::blocking::Client;
+
+let data: Vec<u8> = Client::new()
+    .get("https://example.com/financial_data.csv")  // 替换为实际的金融数据链接
+    .send()?
+    .text()?
+    .bytes()
+    .collect();
+
+let file = std::io::Cursor::new(data);
+let df = CsvReadOptions::default()
+    .with_has_header(true)
+    .into_reader_with_file_handle(file)
+    .finish()?;
+
+println!("{}", df);
+```
+
+### 在选择上下文中的分组聚合
+
+下面展示了如何使用窗口函数在不同的列上进行分组并对它们进行聚合。这使得我们可以在单个查询中使用多个并行的分组操作。聚合的结果会投影回原始行，因此窗口函数几乎总是会导致一个与原始大小相同的 DataFrame。
+
+```rust
+let out = df
+    .clone()
+    .lazy()
+    .select([
+        col("sector"),
+        col("market_cap"),
+        col("price")
+            .mean()
+            .over(["sector"])
+            .alias("avg_price_by_sector"),
+        col("volume")
+            .mean()
+            .over(["sector", "market_cap"])
+            .alias("avg_volume_by_sector_and_market_cap"),
+        col("price").mean().alias("avg_price"),
+    ])
+    .collect()?;
+
+println!("{}", out);
+```
+
+### 每个分组内的操作
+
+窗口函数不仅可以用于聚合，还可以在分组内执行其他操作。例如，如果您想对分组内的值进行排序，可以使用 `col("value").sort().over("group")`。
+
+```rust
+let filtered = df
+    .clone()
+    .lazy()
+    .filter(col("market_cap").gt(lit(1000000000)))  // 过滤市值大于 10 亿的公司
+    .select([col("company"), col("sector"), col("price")])
+    .collect()?;
+
+println!("{}", filtered);
+
+let out = filtered
+    .lazy()
+    .with_columns([cols(["company", "price"])
+        .sort_by(
+            ["price"],
+            SortMultipleOptions::default().with_order_descending(true),
+        )
+        .over(["sector"])])
+    .collect()?;
+println!("{}", out);
+```
+
+Polars 会跟踪每个分组的位置，并将表达式映射到正确的行位置。这也适用于在单个选择中对不同分组的操作。
+
+### 窗口表达式规则
+
+假设我们将其应用于 `pl.Int32` 列，窗口表达式的评估如下：
+
+```rust
+// 在分组内聚合并广播
+let _ = sum("price").over([col("sector")]);
+// 在分组内求和并与分组元素相乘
+let _ = (col("volume").sum() * col("price"))
+    .over([col("sector")])
+    .alias("volume_price_sum");
+// 在分组内求和并与分组元素相乘并将分组聚合为列表
+let _ = (col("volume").sum() * col("price"))
+    .over([col("sector")])
+    .alias("volume_price_list")
+    .flatten();
+```
+
+### 更多示例
+
+下面是一些窗口函数的练习示例：
+
+1. 按行业对所有公司进行排序。
+2. 选择每个行业中的前三家公司作为 "top_3_in_sector"。
+3. 按价格对公司进行降序排序，并选择每个行业中的前三家公司作为 "top_3_by_price"。
+4. 按市值对公司进行降序排序，并选择每个行业中的前三家公司作为 "top_3_by_market_cap"。
+
+```rust
+let out = df
+    .clone()
+    .lazy()
+    .select([
+        col("sector").head(Some(3)).over(["sector"]).flatten(),
+        col("company")
+            .sort_by(
+                ["price"],
+                SortMultipleOptions::default().with_order_descending(true),
+            )
+            .head(Some(3))
+            .over(["sector"])
+            .flatten()
+            .alias("top_3_by_price"),
+        col("company")
+            .sort_by(
+                ["market_cap"],
+                SortMultipleOptions::default().with_order_descending(true),
+            )
+            .head(Some(3))
+            .over(["sector"])
+            .flatten()
+            .alias("top_3_by_market_cap"),
+    ])
+    .collect()?;
+println!("{:?}", out);
+```
+
+在量化金融中，这些窗口函数可以帮助我们对股票数据进行复杂的分析和聚合操作，例如计算行业内的平均价格，筛选出每个行业中价格最高的公司等。通过这些功能，我们可以更高效地处理和分析大量的金融数据。
 
 
 ### 案例：序列化 & 转化为polars的dataframe
@@ -1927,7 +2063,7 @@ fn main() {
 | 1996-12-19T00 | 17.01 | 16.4  | 17.9  | …    | 11.44     | -1.74       | -0.29         | 8.03          |
 | 0:00:00.000   |       |       |       |      |           |             |               |               |
 
-#  Chapter 24 - 时序数据库Clickhouse【未完成】
+#  Chapter 24 - 时序数据库Clickhouse
 
 ClickHouse 是一个开源的列式时序数据库管理系统（DBMS），专为高性能和低延迟的数据分析而设计。它最初由俄罗斯的互联网公司 Yandex 开发，用于处理海量的数据分析工作负载。以下是 ClickHouse 的主要特点和介绍：
 
