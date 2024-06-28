@@ -1,5 +1,7 @@
 # PART II 进阶部分 - 量化实战（Rust Quantitative Trading in Actions）
 
+------------------------------------
+
 #  Chapter 23 - Polars入门 
 
 Polars 是一个基于 Rust 语言开发的数据操作和分析库，旨在提供高性能和易用性。它类似于 Python 中的 pandas 库，但是由于 Rust 的性能和内存安全特性，Polars 在处理大型数据集时通常比 pandas 更快。

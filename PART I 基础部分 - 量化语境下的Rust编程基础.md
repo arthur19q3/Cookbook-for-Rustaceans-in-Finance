@@ -1,4 +1,6 @@
-PART I 基础部分 - 量化语境下的Rust编程基础 (Fundamentals of Rust Programming with the context of Quantitative Trading)
+# PART I 基础部分 - 量化语境下的Rust编程基础 (Fundamentals of Rust Programming with the context of Quantitative Trading)
+
+----------------------------------------
 
 # Chapter 1 -  Rust 语言入门101
 
