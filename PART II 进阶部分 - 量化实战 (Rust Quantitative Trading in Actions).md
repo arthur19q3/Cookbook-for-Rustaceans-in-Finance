@@ -1620,6 +1620,244 @@ PROJECT */5 COLUMNS
 
 ###  23.3.7 缺失值处理 Missihg Values
 
+本页面介绍了在 Polars 中如何表示缺失数据以及如何填充缺失数据。
+
+### null 和 NaN 值
+
+在 Polars 中，每个 DataFrame（或 Series）中的列都是一个 Arrow 数组或基于 Apache Arrow 规范的 Arrow 数组集合。缺失数据在 Arrow 和 Polars 中用 null 值表示。这种 null 缺失值适用于所有数据类型，包括数值型数据。
+
+此外，Polars 还允许在浮点数列中使用 NaN（非数值）值。NaN 值被视为浮点数据类型的一部分，而不是缺失数据。我们将在下面单独讨论 NaN 值。
+
+可以使用 Rust 中的 `None` 值手动定义缺失值：
+
+```rust
+use polars::prelude::*;
+
+let df = df!(
+    "value" => &[Some(1), None],
+)?;
+
+println!("{}", &df);
+
+shape: (2, 1)
+┌───────┐
+│ value │
+│ ---   │
+│ i64   │
+╞═══════╡
+│ 1     │
+│ null  │
+└───────┘
+```
+
+### 缺失数据元数据
+
+每个由 Polars 使用的 Arrow 数组都存储了与缺失数据相关的两种元数据。这些元数据允许 Polars 快速显示有多少缺失值以及哪些值是缺失的。
+
+第一种元数据是 `null_count`，即列中 null 值的行数：
+
+```rust
+let null_count_df = df.null_count();
+println!("{}", &null_count_df);
+
+shape: (1, 1)
+┌───────┐
+│ value │
+│ ---   │
+│ u32   │
+╞═══════╡
+│ 1     │
+└───────┘
+```
+
+第二种元数据是一个叫做有效性位图（validity bitmap）的数组，指示每个数据值是有效的还是缺失的。有效性位图在内存中是高效的，因为它是按位编码的 - 每个值要么是 0 要么是 1。这种按位编码意味着每个数组的内存开销仅为（数组长度 / 8）字节。有效性位图由 Polars 的 `is_null` 方法使用。
+
+可以使用 `is_null` 方法返回基于有效性位图的 Series：
+
+```rust
+let is_null_series = df
+    .clone()
+    .lazy()
+    .select([col("value").is_null()])
+    .collect()?;
+println!("{}", &is_null_series);
+
+shape: (2, 1)
+┌───────┐
+│ value │
+│ ---   │
+│ bool  │
+╞═══════╡
+│ false │
+│ true  │
+└───────┘
+```
+
+### 填充缺失数据
+
+可以使用 `fill_null` 方法填充 Series 中的缺失数据。您需要指定希望 `fill_null` 方法如何填充缺失数据。主要有以下几种方式：
+
+1. 使用字面值，例如 0 或 "0"
+2. 使用策略，例如前向填充
+3. 使用表达式，例如用另一列的值替换
+4. 插值
+
+我们通过定义一个简单的 DataFrame，其中 col2 有一个缺失值，来说明每种填充缺失值的方法：
+
+```rust
+let df = df!(
+    "col1" => &[Some(1), Some(2), Some(3)],
+    "col2" => &[Some(1), None, Some(3)],
+)?;
+println!("{}", &df);
+
+shape: (3, 2)
+┌──────┬──────┐
+│ col1 ┆ col2 │
+│ ---  ┆ ---  │
+│ i64  ┆ i64  │
+╞══════╪══════╡
+│ 1    ┆ 1    │
+│ 2    ┆ null │
+│ 3    ┆ 3    │
+└──────┴──────┘
+```
+
+#### 使用指定字面值填充
+
+我们可以用一个指定的字面值填充缺失数据：
+
+```rust
+let fill_literal_df = df
+    .clone()
+    .lazy()
+    .with_columns([col("col2").fill_null(lit(2))])
+    .collect()?;
+println!("{}", &fill_literal_df);
+
+shape: (3, 2)
+┌──────┬──────┐
+│ col1 ┆ col2 │
+│ ---  ┆ ---  │
+│ i64  ┆ i64  │
+╞══════╪══════╡
+│ 1    ┆ 1    │
+│ 2    ┆ 2    │
+│ 3    ┆ 3    │
+└──────┴──────┘
+```
+
+#### 使用策略填充
+
+我们可以用一种策略来填充缺失数据，例如前向填充：
+
+```rust
+let fill_forward_df = df
+    .clone()
+    .lazy()
+    .with_columns([col("col2").forward_fill(None)])
+    .collect()?;
+println!("{}", &fill_forward_df);
+
+shape: (3, 2)
+┌──────┬──────┐
+│ col1 ┆ col2 │
+│ ---  ┆ ---  │
+│ i64  ┆ i64  │
+╞══════╪══════╡
+│ 1    ┆ 1    │
+│ 2    ┆ 1    │
+│ 3    ┆ 3    │
+└──────┴──────┘
+```
+
+#### 使用表达式填充
+
+为了更灵活地填充缺失数据，我们可以使用表达式。例如，用该列的中位数填充 null 值：
+
+```rust
+let fill_median_df = df
+    .clone()
+    .lazy()
+    .with_columns([col("col2").fill_null(median("col2"))])
+    .collect()?;
+println!("{}", &fill_median_df);
+
+shape: (3, 2)
+┌──────┬──────┐
+│ col1 ┆ col2 │
+│ ---  ┆ ---  │
+│ i64  ┆ f64  │
+╞══════╪══════╡
+│ 1    ┆ 1.0  │
+│ 2    ┆ 2.0  │
+│ 3    ┆ 3.0  │
+└──────┴──────┘
+```
+
+在这种情况下，由于中位数是浮点数统计数据，列从整数类型转换为浮点类型。
+
+#### 使用插值填充
+
+此外，我们可以使用插值（不使用 `fill_null` 函数）来填充 null 值：
+
+```rust
+let fill_interpolation_df = df
+    .clone()
+    .lazy()
+    .with_columns([col("col2").interpolate(InterpolationMethod::Linear)])
+    .collect()?;
+println!("{}", &fill_interpolation_df);
+
+shape: (3, 2)
+┌──────┬──────┐
+│ col1 ┆ col2 │
+│ ---  ┆ ---  │
+│ i64  ┆ f64  │
+╞══════╪══════╡
+│ 1    ┆ 1.0  │
+│ 2    ┆ 2.0  │
+│ 3    ┆ 3.0  │
+└──────┴──────┘
+```
+
+### NaN 值
+
+Series 中的缺失数据有一个 null 值。然而，您可以在浮点数数据类型的列中使用 NaN 值。这些 NaN 值可以由 Numpy 的 `np.nan` 或原生的 `float('nan')` 创建：
+
+```rust
+let nan_df = df!(
+    "value" => [1.0, f64::NAN, f64::NAN, 3.0],
+)?;
+println!("{}", &nan_df);
+
+shape: (4, 1)
+┌───────┐
+│ value │
+│ ---   │
+│ f64   │
+╞═══════╡
+│ 1.0   │
+│ NaN   │
+│ NaN   │
+│ 3.0   │
+└───────┘
+```
+
+NaN 值被视为浮点数据类型的一部分，而不是缺失数据。这意味着：
+
+- NaN 值不会被 `null_count` 方法计数。
+- 当您使用 `fill_nan` 方法时，NaN 值会被填充，但不会被 `fill_null` 方法填充。
+
+Polars 具有 `is_nan` 和 `fill_nan` 方法，类似于 `is_null` 和 `fill_null` 方法。基础 Arrow 数组没有预先计算的 NaN 值有效位图，因此 `is_nan` 方法必须计算这个位图。
+
+null 和 NaN 值之间的另一个区别是，计算包含 null 值的列的平均值时，会排除 null 值，而包含 NaN 值的列的平均值结果为 NaN。这种行为可以通过用 null 值替换 NaN 值来避免：
+
+```rust
+let mean_nan_df = nan_df
+   
+```
+
 ### 23.3.8 窗口函数 Window functions
 
 
