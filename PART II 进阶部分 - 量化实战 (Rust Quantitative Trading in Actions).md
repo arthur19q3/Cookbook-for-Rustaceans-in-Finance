@@ -686,7 +686,7 @@ println!("{}", df);
 
 通过这些示例，你可以了解如何在 Rust 中使用 Polars 处理各种数据类型。
 
-### 23.3.6 数据结构 
+### 23.2.6 数据结构 
 
 #### 数据结构
 
@@ -855,13 +855,773 @@ shape: (2, 3)
 
 
 
-## 23.3 Polars进阶学习【未完成】
+## 23.3 Polars进阶学习 【未完成】
 
-### 23.3.1 上下文 (Context )
+### 23.3.1 聚合操作 Aggregation
 
-### 23.3.2 惰性模式 (Lazy Mode)
+### 聚合操作在量化金融中的应用
 
-### 23.3.3 流模式 (Streaming Mode)
+Polars 实现了强大的语法，既可以在惰性 API 中定义，也可以在急性 API 中定义。让我们看一下这意味着什么。
+
+我们可以从一个简单的期货和期权交易数据集开始。
+
+```rust
+use std::io::Cursor;
+use reqwest::blocking::Client;
+use polars::prelude::*;
+
+let url = "https://example.com/financial-data.csv";
+
+let mut schema = Schema::new();
+schema.with_column(
+    "symbol".into(),
+    DataType::Categorical(None, Default::default()),
+);
+schema.with_column(
+    "type".into(),
+    DataType::Categorical(None, Default::default()),
+);
+schema.with_column(
+    "trade_date".into(),
+    DataType::Date,
+);
+schema.with_column(
+    "open".into(),
+    DataType::Float64,
+);
+schema.with_column(
+    "close".into(),
+    DataType::Float64,
+);
+schema.with_column(
+    "volume".into(),
+    DataType::Float64,
+);
+
+let data: Vec<u8> = Client::new().get(url).send()?.text()?.bytes().collect();
+
+let dataset = CsvReadOptions::default()
+    .with_has_header(true)
+    .with_schema(Some(Arc::new(schema)))
+    .map_parse_options(|parse_options| parse_options.with_try_parse_dates(true))
+    .into_reader_with_file_handle(Cursor::new(data))
+    .finish()?;
+
+println!("{}", &dataset);
+```
+
+#### 基本聚合
+
+我们可以按 `symbol` 和 `type` 分组，并计算每组的成交量总和、开盘价和收盘价的平均值。
+
+```rust
+let df = dataset
+    .clone()
+    .lazy()
+    .group_by(["symbol", "type"])
+    .agg([
+        sum("volume").alias("total_volume"),
+        mean("open").alias("avg_open"),
+        mean("close").alias("avg_close"),
+    ])
+    .sort(
+        ["total_volume"],
+        SortMultipleOptions::default()
+            .with_order_descending(true)
+            .with_nulls_last(true),
+    )
+    .limit(5)
+    .collect()?;
+
+println!("{}", df);
+```
+
+#### 条件聚合
+
+我们想知道每个交易日中涨幅超过5%的交易记录数。可以直接在聚合中查询：
+
+```rust
+let df = dataset
+    .clone()
+    .lazy()
+    .group_by(["trade_date"])
+    .agg([
+        (col("close") - col("open")).gt(lit(0.05)).sum().alias("gains_over_5pct"),
+    ])
+    .sort(
+        ["gains_over_5pct"],
+        SortMultipleOptions::default().with_order_descending(true),
+    )
+    .limit(5)
+    .collect()?;
+
+println!("{}", df);
+```
+
+#### 嵌套分组
+
+在嵌套分组中，表达式在组内工作，因此可以生成任意长度的结果。例如，我们想按 `symbol` 和 `type` 分组，并计算每组的交易量总和和记录数：
+
+```rust
+let df = dataset
+    .clone()
+    .lazy()
+    .group_by(["symbol", "type"])
+    .agg([
+        col("volume").sum().alias("total_volume"),
+        col("symbol").count().alias("record_count"),
+    ])
+    .sort(
+        ["total_volume"],
+        SortMultipleOptions::default()
+            .with_order_descending(true)
+            .with_nulls_last(true),
+    )
+    .limit(5)
+    .collect()?;
+
+println!("{}", df);
+```
+
+#### 过滤组内数据
+
+我们可以计算每个交易日的平均涨幅，但不包含成交量低于 1000 的交易记录：
+
+```rust
+fn compute_change() -> Expr {
+    (col("close") - col("open")) / col("open") * lit(100)
+}
+
+fn avg_change_with_volume_filter() -> Expr {
+    compute_change()
+        .filter(col("volume").gt(lit(1000)))
+        .mean()
+        .alias("avg_change_filtered")
+}
+
+let df = dataset
+    .clone()
+    .lazy()
+    .group_by(["trade_date"])
+    .agg([
+        avg_change_with_volume_filter(),
+        col("volume").sum().alias("total_volume"),
+    ])
+    .limit(5)
+    .collect()?;
+
+println!("{}", df);
+```
+
+#### 排序
+
+我们可以按交易日期排序，并按 `symbol` 分组以获得每个 `symbol` 的最高和最低收盘价：
+
+```rust
+fn get_price_range() -> Expr {
+    col("close")
+}
+
+let df = dataset
+    .clone()
+    .lazy()
+    .sort(
+        ["trade_date"],
+        SortMultipleOptions::default()
+            .with_order_descending(true)
+            .with_nulls_last(true),
+    )
+    .group_by(["symbol"])
+    .agg([
+        get_price_range().max().alias("max_close"),
+        get_price_range().min().alias("min_close"),
+    ])
+    .limit(5)
+    .collect()?;
+
+println!("{}", df);
+```
+
+我们还可以在 `group_by` 上下文中按另一列排序：
+
+```rust
+let df = dataset
+    .clone()
+    .lazy()
+    .sort(
+        ["trade_date"],
+        SortMultipleOptions::default()
+            .with_order_descending(true)
+            .with_nulls_last(true),
+    )
+    .group_by(["symbol"])
+    .agg([
+        get_price_range().max().alias("max_close"),
+        get_price_range().min().alias("min_close"),
+        col("type")
+            .sort_by(["symbol"], SortMultipleOptions::default())
+            .first()
+            .alias("first_type"),
+    ])
+    .sort(["symbol"], SortMultipleOptions::default())
+    .limit(5)
+    .collect()?;
+
+println!("{}", df);
+```
+
+### 23.3.2 Folds
+
+### Folds
+
+Polars 提供了一些用于横向聚合的表达式和方法，如 sum、min、mean 等。然而，当你需要更复杂的聚合时，Polars 默认的方法可能不够用。这时，折叠（fold）操作就派上用场了。
+
+折叠表达式在列上操作，最大限度地提高了速度。它非常高效地利用数据布局，并且通常具有向量化执行的特点。
+
+#### 手动求和
+
+我们从一个示例开始，通过折叠实现求和操作。
+
+```rust
+use polars::prelude::*;
+
+let df = df!(
+    "price" => &[100, 200, 300],
+    "quantity" => &[2, 3, 4],
+)?;
+
+let out = df
+    .lazy()
+    .select([fold_exprs(lit(0), |acc, x| (acc + x).map(Some), [col("*")]).alias("sum")])
+    .collect()?;
+println!("{}", out);
+
+shape: (3, 1)
+┌─────┐
+│ sum │
+│ --- │
+│ i64 │
+╞═════╡
+│ 102 │
+│ 203 │
+│ 304 │
+└─────┘
+```
+
+上述代码递归地将函数 `f(acc, x) -> acc` 应用到累加器 `acc` 和新列 `x` 上。这个函数单独在列上操作，可以利用缓存效率和向量化执行。
+
+#### 条件聚合
+
+如果你想对 DataFrame 中的所有列应用条件或谓词，折叠操作可以非常简洁地表达这种需求。
+
+```rust
+let df = df!(
+    "price" => &[100, 200, 300],
+    "quantity" => &[2, 3, 4],
+)?;
+
+let out = df
+    .lazy()
+    .filter(fold_exprs(
+        lit(true),
+        |acc, x| acc.bitand(&x).map(Some),
+        [col("*").gt(150)],
+    ))
+    .collect()?;
+println!("{}", out);
+
+shape: (1, 2)
+┌───────┬─────────┐
+│ price ┆ quantity│
+│ ----- ┆ ------- │
+│ i64   ┆ i64     │
+╞═══════╪═════════╡
+│ 300   ┆ 4       │
+└───────┴─────────┘
+```
+
+在上述代码片段中，我们过滤出所有列值大于 150 的行。
+
+#### 折叠和字符串数据
+
+折叠可以用来连接字符串数据。然而，由于中间列的物化，这种操作的复杂度会呈平方级增长。因此，我们推荐使用 `concat_str` 表达式来完成这类操作。
+
+```rust
+use polars::prelude::*;
+
+let df = df!(
+    "symbol" => &["AAPL", "GOOGL", "AMZN"],
+    "price" => &[150, 2800, 3400],
+)?;
+
+let out = df
+    .lazy()
+    .select([concat_str([col("symbol"), col("price")], "", false).alias("combined")])
+    .collect()?;
+println!("{:?}", out);
+
+shape: (3, 1)
+┌───────────┐
+│ combined  │
+│ ---       │
+│ str       │
+╞═══════════╡
+│ AAPL150   │
+│ GOOGL2800 │
+│ AMZN3400  │
+└───────────┘
+```
+
+通过使用 `concat_str` 表达式，我们可以高效地连接字符串数据，避免了复杂的操作。
+
+
+
+### 23.3.3 CSV input
+
+### CSV
+#### 读取与写入
+
+读取CSV文件的方式很常见：
+```rust
+use polars::prelude::*;
+
+let df = CsvReadOptions::default()
+    .try_into_reader_with_file_path(Some("docs/data/path.csv".into()))
+    .unwrap()
+    .finish()
+    .unwrap();
+```
+在这个示例中，我们使用`CsvReadOptions`来设置CSV读取选项，然后将文件路径传递给`try_into_reader_with_file_path`方法，最终通过`finish`方法完成读取并获取DataFrame。
+
+写入CSV文件使用`write_csv`函数：
+```rust
+use polars::prelude::*;
+
+let mut df = df!(
+    "foo" => &[1, 2, 3],
+    "bar" => &[None, Some("bak"), Some("baz")],
+).unwrap();
+
+let mut file = std::fs::File::create("docs/data/path.csv").unwrap();
+CsvWriter::new(&mut file).finish(&mut df).unwrap();
+```
+在这个示例中，我们创建一个DataFrame并将其写入指定路径的CSV文件中。
+
+#### 扫描CSV
+
+Polars允许你扫描CSV输入。扫描延迟了文件的实际解析，返回一个名为LazyFrame的惰性计算持有者。
+```rust
+use polars::prelude::*;
+
+let lf = LazyCsvReader::new("./test.csv").finish().unwrap();
+```
+使用`LazyCsvReader`，可以在不立即解析文件的情况下处理CSV输入，这对优化性能有很大帮助。
+
+### 教程总结
+
+#### 读取CSV文件
+1. 导入Polars库。
+2. 使用`CsvReadOptions`配置CSV读取选项。
+3. 调用`try_into_reader_with_file_path`方法传入文件路径。
+4. 使用`finish`方法完成读取并获取DataFrame。
+
+#### 写入CSV文件
+1. 创建一个DataFrame对象。
+2. 使用`std::fs::File::create`创建文件。
+3. 使用`CsvWriter`将DataFrame写入CSV文件。
+
+#### 扫描CSV文件
+1. 使用`LazyCsvReader`延迟解析CSV文件。
+2. 使用`finish`方法获取LazyFrame。
+
+通过以上方法，可以高效地读取、写入和扫描CSV文件，极大地提升数据处理的性能和灵活性。
+
+### 参考代码示例
+
+#### 读取CSV文件
+```rust
+use polars::prelude::*;
+
+let df = CsvReadOptions::default()
+    .try_into_reader_with_file_path(Some("docs/data/path.csv".into()))
+    .unwrap()
+    .finish()
+    .unwrap();
+println!("{}", df);
+```
+
+#### 写入CSV文件
+```rust
+use polars::prelude::*;
+
+let mut df = df!(
+    "foo" => &[1, 2, 3],
+    "bar" => &[None, Some("bak"), Some("baz")],
+).unwrap();
+
+let mut file = std::fs::File::create("docs/data/path.csv").unwrap();
+CsvWriter::new(&mut file).finish(&mut df).unwrap();
+```
+
+#### 扫描CSV文件
+```rust
+use polars::prelude::*;
+
+let lf = LazyCsvReader::new("./test.csv").finish().unwrap();
+println!("{:?}", lf);
+```
+
+通过上述步骤，用户可以轻松掌握在Rust中使用Polars处理CSV文件的基本方法。
+
+###  23.3.4 JSON input
+
+### JSON 文件
+
+Polars 可以读取和写入标准 JSON 和换行分隔的 JSON (NDJSON)。
+
+#### 读取
+
+##### 标准 JSON
+读取 JSON 文件的方式如下：
+```rust
+use polars::prelude::*;
+let mut file = std::fs::File::open("docs/data/path.json").unwrap();
+let df = JsonReader::new(&mut file).finish().unwrap();
+```
+
+##### 换行分隔的 JSON
+Polars 可以更高效地读取 NDJSON 文件：
+```rust
+use polars::prelude::*;
+let mut file = std::fs::File::open("docs/data/path.json").unwrap();
+let df = JsonLineReader::new(&mut file).finish().unwrap();
+```
+
+#### 写入
+将 DataFrame 写入 JSON 文件：
+```rust
+use polars::prelude::*;
+let mut df = df!(
+    "foo" => &[1, 2, 3],
+    "bar" => &[None, Some("bak"), Some("baz")],
+).unwrap();
+let mut file = std::fs::File::create("docs/data/path.json").unwrap();
+
+// 写入标准 JSON
+JsonWriter::new(&mut file)
+    .with_json_format(JsonFormat::Json)
+    .finish(&mut df)
+    .unwrap();
+
+// 写入 NDJSON
+JsonWriter::new(&mut file)
+    .with_json_format(JsonFormat::JsonLines)
+    .finish(&mut df)
+    .unwrap();
+```
+
+#### 扫描
+Polars 允许仅扫描换行分隔的 JSON 输入。扫描延迟了文件的实际解析，返回一个名为 LazyFrame 的惰性计算持有者。
+```rust
+use polars::prelude::*;
+let lf = LazyJsonLineReader::new("docs/data/path.json")
+    .finish()
+    .unwrap();
+```
+
+### 23.3.5 Polars的急性和惰性模式 (Lazy / Eager API)
+
+Polars 提供了两种操作模式：急性（Eager）和惰性（Lazy）。急性模式下，查询会立即执行，而惰性模式下，查询会在“需要”时才评估。推迟执行可以显著提升性能，因此在大多数情况下优先使用惰性 API。下面通过一个例子进行说明：
+
+#### 急性模式示例
+```rust
+use polars::prelude::*;
+
+let df = CsvReadOptions::default()
+    .try_into_reader_with_file_path(Some("docs/data/iris.csv".into()))
+    .unwrap()
+    .finish()
+    .unwrap();
+let mask = df.column("sepal_length")?.f64()?.gt(5.0);
+let df_small = df.filter(&mask)?;
+#[allow(deprecated)]
+let df_agg = df_small
+    .group_by(["species"])?
+    .select(["sepal_width"])
+    .mean()?;
+println!("{}", df_agg);
+```
+在这个例子中，我们使用急性 API：
+1. 读取鸢尾花数据集。
+2. 根据萼片长度过滤数据集。
+3. 计算每个物种的萼片宽度平均值。
+
+每一步都立即执行并返回中间结果。这可能会浪费资源，因为我们可能会执行不必要的工作或加载未使用的数据。
+
+#### 惰性模式示例
+```rust
+use polars::prelude::*;
+
+let q = LazyCsvReader::new("docs/data/iris.csv")
+    .with_has_header(true)
+    .finish()?
+    .filter(col("sepal_length").gt(lit(5)))
+    .group_by(vec![col("species")])
+    .agg([col("sepal_width").mean()]);
+let df = q.collect()?;
+println!("{}", df);
+```
+在这个例子中，使用惰性 API 可以进行以下优化：
+1. 谓词下推（Predicate pushdown）：在读取数据集时尽早应用过滤器，仅读取萼片长度大于 5 的行。
+2. 投影下推（Projection pushdown）：在读取数据集时只选择所需的列，从而不需要加载额外的列（如花瓣长度和花瓣宽度）。
+
+这些优化显著降低了内存和 CPU 的负载，从而允许在内存中处理更大的数据集并加快处理速度。一旦定义了查询，通过调用 `collect` 来执行它。在 Lazy API 章节中，我们将详细讨论其实现。
+
+### 急性 API
+在很多情况下，急性 API 实际上是在底层调用惰性 API，并立即收集结果。这具有在查询内部仍然可以进行查询计划优化的好处。
+
+### 何时使用哪种模式
+通常应优先使用惰性 API，除非您对中间结果感兴趣或正在进行探索性工作，并且尚不确定查询的最终形态。
+
+### 量化金融案例
+#### 急性模式示例：计算股票的简单移动平均线（SMA）
+```rust
+use polars::prelude::*;
+use chrono::NaiveDate;
+
+let df = df!(
+    "date" => &[
+        NaiveDate::from_ymd(2023, 1, 1),
+        NaiveDate::from_ymd(2023, 1, 2),
+        NaiveDate::from_ymd(2023, 1, 3),
+        NaiveDate::from_ymd(2023, 1, 4),
+        NaiveDate::from_ymd(2023, 1, 5),
+    ],
+    "price" => &[100.0, 101.0, 102.0, 103.0, 104.0],
+)?;
+
+let sma = df
+    .clone()
+    .select([col("price").rolling_mean(3, None, false, false).alias("SMA")])
+    .collect()?;
+
+println!("{}", sma);
+```
+
+#### 惰性模式示例：计算股票的加权移动平均线（WMA）
+```rust
+let df = df!(
+    "date" => &[
+        NaiveDate::from_ymd(2023, 1, 1),
+        NaiveDate::from_ymd(2023, 1, 2),
+        NaiveDate::from_ymd(2023, 1, 3),
+        NaiveDate::from_ymd(2023, 1, 4),
+        NaiveDate::from_ymd(2023, 1, 5),
+    ],
+    "price" => &[100.0, 101.0, 102.0, 103.0, 104.0],
+)?;
+
+let weights = vec![0.5, 0.3, 0.2];
+
+let wma = df
+    .lazy()
+    .with_column(
+        col("price")
+            .rolling_apply(
+                |s| {
+                    let weighted_sum: f64 = s
+                        .f64()
+                        .unwrap()
+                        .into_iter()
+                        .zip(&weights)
+                        .map(|(x, &w)| x.unwrap() * w)
+                        .sum();
+                    Some(weighted_sum)
+                },
+                3,
+                polars::prelude::RollingOptions::default()
+                    .min_periods(1)
+                    .center(false)
+                    .window_size(3)
+            )
+            .alias("WMA")
+    )
+    .collect()?;
+
+println!("{}", wma);
+```
+
+###  23.3.6 流模式 (Streaming Mode)
+
+Polars 引入了一个强大的功能叫做流模式（Streaming Mode），设计用于通过分块处理数据来高效处理大型数据集。该模式显著提高了数据处理任务的性能，特别是在处理无法全部装入内存的海量数据集时。
+
+#### 流模式的关键特性：
+
+1. **基于块的处理**：Polars 以块的形式处理数据，减少内存使用，使其能够高效处理大型数据集。
+2. **自动优化**：流模式包含诸如谓词下推（predicate pushdown）和投影下推（projection pushdown）等优化，以最小化处理和读取的数据量。
+3. **并行执行**：Polars 利用所有可用的 CPU 核心，通过划分工作负载来加快数据处理速度。
+
+#### 量化金融案例
+
+考虑一个需要处理大型股票交易数据集的场景。使用 Polars 流模式，我们可以高效地从包含数百万交易记录的 CSV 文件中计算每个股票代码的平均交易价格。
+
+##### 急性 API 示例
+
+使用急性 API 时，操作会立即执行：
+
+```rust
+use polars::prelude::*;
+
+let df = CsvReadOptions::default()
+    .try_into_reader_with_file_path(Some("docs/data/stock_trades.csv".into()))
+    .unwrap()
+    .finish()
+    .unwrap();
+
+let mask = df.column("trade_price")?.f64()?.gt(100.0);
+let df_filtered = df.filter(&mask)?;
+#[allow(deprecated)]
+let df_agg = df_filtered
+    .group_by(["stock_symbol"])?
+    .select(["trade_price"])
+    .mean()?;
+println!("{}", df_agg);
+```
+
+在这个示例中：
+1. 读取数据集。
+2. 基于交易价格过滤数据集。
+3. 计算每个股票代码的平均交易价格。
+
+##### 惰性 API 示例（带流模式）
+
+使用惰性 API 并启用流模式可以延迟执行和优化：
+
+```rust
+use polars::prelude::*;
+
+let q = LazyCsvReader::new("docs/data/stock_trades.csv")
+    .with_has_header(true)
+    .finish()?
+    .filter(col("trade_price").gt(lit(100)))
+    .group_by(vec![col("stock_symbol")])
+    .agg([col("trade_price").mean()]);
+let df = q.collect()?;
+println!("{}", df);
+```
+
+在这个示例中：
+1. 定义查询但不立即执行。
+2. 查询计划器在数据扫描期间应用优化，如过滤和选择列。
+3. 查询以块的形式执行，减少内存使用并提高性能。
+
+#### 配置块大小
+
+默认块大小由列数和可用线程数决定，但可以手动设置以进一步优化性能：
+
+```rust
+use polars::prelude::*;
+
+pl::Config::set_streaming_chunk_size(50000);
+
+let q = LazyCsvReader::new("docs/data/stock_trades.csv")
+    .with_has_header(true)
+    .finish()?
+    .filter(col("trade_price").gt(lit(100)))
+    .group_by(vec![col("stock_symbol")])
+    .agg([col("trade_price").mean()]);
+let df = q.collect()?;
+println!("{}", df);
+```
+
+设置块大小有助于根据具体需求和硬件能力平衡内存使用和处理速度。
+
+### 流模式的优势
+
+1. **内存效率**：通过分块处理数据，显著减少内存使用。
+2. **速度**：并行执行和查询优化加快了数据处理速度。
+3. **可扩展性**：通过从磁盘中分块流式传输数据，处理超过内存限制的大型数据集。
+
+Polars 流模式在量化金融中尤其有用，因为大量数据集很常见，高效的数据处理对于及时分析和决策至关重要。
+
+### 使用流模式执行查询
+
+Polars 支持通过传递 `streaming=True` 参数到 `collect` 方法，以流方式执行查询。
+
+```rust
+use polars::prelude::*;
+
+let q1 = LazyCsvReader::new("docs/data/iris.csv")
+    .with_has_header(true)
+    .finish()?
+    .filter(col("sepal_length").gt(lit(5)))
+    .group_by(vec![col("species")])
+    .agg([col("sepal_width").mean()]);
+
+let df = q1.clone().with_streaming(true).collect()?;
+println!("{}", df);
+```
+
+#### 何时可用流模式？
+
+流模式仍在开发中。我们可以请求 Polars 以流模式执行任何惰性查询，但并非所有惰性操作都支持流模式。如果某个操作不支持流模式，Polars 将在非流模式下运行查询。
+
+流模式支持许多操作，包括：
+- 过滤、切片、头、尾
+- with_columns、select
+- group_by
+- 连接
+- 唯一
+- 排序
+- 爆炸、反透视
+- scan_csv、scan_parquet、scan_ipc
+
+这个列表并不详尽。Polars 正在积极开发中，更多操作可能会在没有明确通知的情况下添加。
+
+#### 示例（带支持操作）
+
+要确定查询的哪些部分是流式的，可以使用 `explain` 方法。以下是一个演示如何检查查询计划的示例：
+
+```rust
+use polars::prelude::*;
+
+let query_plan = q1.with_streaming(true).explain(true)?;
+println!("{}", query_plan);
+
+STREAMING:
+  AGGREGATE
+    [col("sepal_width").mean()] BY [col("species")] FROM
+    Csv SCAN [docs/data/iris.csv]
+    PROJECT 3/5 COLUMNS
+    SELECTION: [(col("sepal_length")) > (5.0)]
+```
+
+#### 示例（带非流式操作）
+
+```rust
+use polars::prelude::*;
+
+let q2 = LazyCsvReader::new("docs/data/iris.csv")
+    .finish()?
+    .with_columns(vec![col("sepal_length")
+        .mean()
+        .over(vec![col("species")])
+        .alias("sepal_length_mean")]);
+
+let query_plan = q2.with_streaming(true).explain(true)?;
+println!("{}", query_plan);
+
+WITH_COLUMNS:
+[col("sepal_length").mean().over([col("species")])] 
+STREAMING:
+Csv SCAN [docs/data/iris.csv]
+PROJECT */5 COLUMNS
+```
+
+###  23.3.7 缺失值处理 Missihg Values
+
+### 23.3.8 窗口函数 Window functions
+
 
 
 
