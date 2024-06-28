@@ -2,7 +2,7 @@
 
 # Cookbook for Rustaceans in Finance / Rust量化金融开发指南
 
-/Arthur Zhang
+/Arthur Zhang 张岩
 
 #  Preface 序
 
@@ -11140,7 +11140,7 @@ shape: (3, 4)
 
 
 
-### 28.2.3.3 添加列（Add Columns）
+#### 28.2.3.3 添加列（Add Columns）
 
 `with_columns` 允许你为分析创建新列。我们将创建两个新列 `e` 和 `b+42`。首先，我们将列 `b` 的所有值求和并存储在新列 `e` 中。然后我们将列 `b` 的值加上 42，并将结果存储在新列 `b+42` 中。
 
@@ -11179,7 +11179,7 @@ shape: (5, 6)
 └─────┴──────────┴─────────────────────┴───────┴──────────┴───────────┘
 ```
 
-### 28.2.3.4 分组（Group by）
+#### 28.2.3.4 分组（Group by）
 
 我们将创建一个新的 DataFrame 来演示分组功能。这个新的 DataFrame 包含多个“组”，我们将按这些组进行分组。
 
@@ -11268,7 +11268,7 @@ shape: (4, 3)
 └─────┴───────┴─────┘
 ```
 
-### 28.2.3.5 组合操作
+#### 28.2.3.5 组合操作
 
 以下示例展示了如何组合操作来创建所需的 DataFrame。
 
@@ -11336,39 +11336,38 @@ shape: (5, 4)
 └─────┴──────────┴─────────────────────┴──────────┘
 ```
 
-### 28.2.3.6 合并 DataFrames
+### 28.2.4 合并 DataFrames
 
 根据使用情况，DataFrames 可以通过两种方式进行合并：`join` 和 `concat`。
 
-#### 连接（Join）
+####  28.2.4.1 连接（Join）
 
-Polars 支持所有类型的连接（如左连接、右连接、内连接、外连接）。以下示例展示了如何将两个 DataFrames 合并为一个 DataFrame。两个 DataFrames 都有一个类似 'id' 的列：`a` 和 `x`。我们可以使用这些列来连接 DataFrames。
+#### 数据表连接类型详解
 
-#### Rust 示例代码
+在数据分析中，连接（Join）操作用于将两个 DataFrames 合并。Polars 支持多种连接类型，包括左连接（Left Join）、右连接（Right Join）、内连接（Inner Join）和外连接（Outer Join）。以下是每种连接类型的详细介绍和示例。
+
+#### 左连接（Left Join）
+
+左连接返回左表中的所有行以及与右表中匹配的行。如果右表中没有匹配的行，则结果中的相应列为 NULL。
 
 ```rust
-use rand::Rng;
 use polars::prelude::*;
+use rand::Rng;
 
-// 生成随机数
 let mut rng = rand::thread_rng();
 
-// 创建第一个 DataFrame
-let df: DataFrame = df!(
-    "a" => 0..8, // 列 a，值为 0 到 7
-    "b"=> (0..8).map(|_| rng.gen::<f64>()).collect::<Vec<f64>>(), // 列 b，随机浮点数
-    "d"=> [Some(1.0), Some(2.0), None, None, Some(0.0), Some(-5.0), Some(-42.), None] // 列 d，有些值为 None
+let df1: DataFrame = df!(
+    "a" => 0..8,
+    "b" => (0..8).map(|_| rng.gen::<f64>()).collect::<Vec<f64>>()
 ).unwrap();
 
-// 创建第二个 DataFrame
 let df2: DataFrame = df!(
-    "x" => 0..8, // 列 x，值为 0 到 7
-    "y"=> &["A", "A", "A", "B", "B", "C", "X", "X"], // 列 y，值为 A, B, C, X
+    "x" => 0..8,
+    "y" => &["A", "A", "A", "B", "B", "C", "X", "X"]
 ).unwrap();
 
-// 使用左连接（Left Join）合并两个 DataFrames
-let joined = df.join(&df2, ["a"], ["x"], JoinType::Left.into())?;
-println!("{}", joined); // 打印合并后的 DataFrame
+let joined = df1.join(&df2, ["a"], ["x"], JoinType::Left.into())?;
+println!("{}", joined);
 ```
 
 输出示例：
@@ -11376,24 +11375,78 @@ println!("{}", joined); // 打印合并后的 DataFrame
 ```
 shape: (8, 4)
 ┌─────┬──────────┬───────┬─────┐
-│ a   ┆ b        ┆ d     ┆ y   │
+│ a   ┆ b        ┆ x     ┆ y   │
 │ --- ┆ ---      ┆ ---   ┆ --- │
-│ i64 ┆ f64      ┆ f64   ┆ str │
+│ i64 ┆ f64      ┆ i64   ┆ str │
 ╞═════╪══════════╪═══════╪═════╡
-│ 0   ┆ 0.495791 ┆ 1.0   ┆ A   │
-│ 1   ┆ 0.786293 ┆ 2.0   ┆ A   │
-│ 2   ┆ 0.847485 ┆ NaN   ┆ A   │
-│ 3   ┆ 0.839398 ┆ NaN   ┆ B   │
-│ 4   ┆ 0.060646 ┆ 0.0   ┆ B   │
-│ 5   ┆ 0.251472 ┆ -5.0  ┆ C   │
-│ 6   ┆ 0.13899  ┆ -42.0 ┆ X   │
-│ 7   ┆ 0.676241 ┆ null  ┆ X   │
+│ 0   ┆ 0.495791 ┆ 0     ┆ A   │
+│ 1   ┆ 0.786293 ┆ 1     ┆ A   │
+│ 2   ┆ 0.847485 ┆ 2     ┆ A   │
+│ 3   ┆ 0.839398 ┆ 3     ┆ B   │
+│ 4   ┆ 0.060646 ┆ 4     ┆ B   │
+│ 5   ┆ 0.251472 ┆ 5     ┆ C   │
+│ 6   ┆ 0.13899  ┆ 6     ┆ X   │
+│ 7   ┆ 0.676241 ┆ 7     ┆ X   │
 └─────┴──────────┴───────┴─────┘
 ```
 
-#### 连接（Concat）
+#### 右连接（Right Join）
 
-我们也可以连接两个 DataFrames。垂直连接会使 DataFrame 变长，水平连接会使 DataFrame 变宽。以下示例展示了水平连接两个 DataFrames 的结果。
+右连接返回右表中的所有行以及与左表中匹配的行。如果左表中没有匹配的行，则结果中的相应列为 NULL。
+
+```rust
+let joined = df1.join(&df2, ["a"], ["x"], JoinType::Right.into())?;
+println!("{}", joined);
+```
+
+#### 内连接（Inner Join）
+
+内连接仅返回两个表中匹配的行。如果没有匹配的行，则该行不出现在结果中。
+
+```rust
+let joined = df1.join(&df2, ["a"], ["x"], JoinType::Inner.into())?;
+println!("{}", joined);
+```
+
+#### 外连接（Outer Join）
+
+外连接返回两个表中的所有行。如果一张表中没有匹配的行，则结果中的相应列为 NULL。
+
+```rust
+let joined = df1.join(&df2, ["a"], ["x"], JoinType::Outer.into())?;
+println!("{}", joined);
+```
+
+#### 示例代码解释
+
+1. **数据生成**：
+   ```rust
+   let df1: DataFrame = df!(
+       "a" => 0..8,
+       "b" => (0..8).map(|_| rng.gen::<f64>()).collect::<Vec<f64>>()
+   ).unwrap();
+   
+   let df2: DataFrame = df!(
+       "x" => 0..8,
+       "y" => &["A", "A", "A", "B", "B", "C", "X", "X"]
+   ).unwrap();
+   ```
+   这段代码创建了两个 DataFrames，`df1` 包含列 `a` 和 `b`，`df2` 包含列 `x` 和 `y`。
+
+2. **连接操作**：
+   ```rust
+   let joined = df1.join(&df2, ["a"], ["x"], JoinType::Left.into())?;
+   println!("{}", joined);
+   ```
+   这段代码执行了左连接，结果包含 `df1` 中的所有行以及 `df2` 中匹配的行。
+
+通过这些示例，你可以更好地理解如何在 Rust 中使用 Polars 进行不同类型的连接操作。
+
+
+
+#### 28.2.4.2 粘连（Concat）
+
+我们也可以粘连两个 DataFrames。垂直粘连会使 DataFrame 变长，水平粘连会使 DataFrame 变宽。以下示例展示了水平粘连两个 DataFrames 的结果。
 
 #### Rust 示例代码
 
@@ -11425,7 +11478,271 @@ shape: (8, 5)
 └─────┴──────────┴───────┴─────┴─────┘
 ```
 
-通过上述步骤，你可以在 Rust 中使用 Polars 方便地进行 DataFrame 的连接和合并。
+通过上述学习，你可以在 Rust 中使用 Polars 方便地进行 DataFrame 的连接和粘连。
+
+### 28.2.5 基本数据类型
+
+Polars 完全基于 Arrow 数据类型，并由 Arrow 内存数组支持。这使得数据处理缓存效率高，并且支持进程间通信。大多数数据类型完全遵循 Arrow 的实现，除了 String（实际上是 LargeUtf8）、Categorical 和 Object（支持有限）。数据类型如下：
+
+#### 数值类型
+- Int8：8 位有符号整数。
+- Int16：16 位有符号整数。
+- Int32：32 位有符号整数。
+- Int64：64 位有符号整数。
+- UInt8：8 位无符号整数。
+- UInt16：16 位无符号整数。
+- UInt32：32 位无符号整数。
+- UInt64：64 位无符号整数。
+- Float32：32 位浮点数。
+- Float64：64 位浮点数。
+
+#### 嵌套类型
+- Struct：结构体数组，表示为 `Vec<Series>`，用于在单列中打包多个/异质值。
+- List：列表数组，包含一个子数组和一个偏移数组（实际上是 Arrow LargeList）。
+
+#### 时间类型
+- Date：日期表示，内部表示为自 UNIX 纪元以来的天数，编码为 32 位有符号整数。
+- Datetime：日期时间表示，内部表示为自 UNIX 纪元以来的微秒数，编码为 64 位有符号整数。
+- Duration：时间间隔类型，内部表示为微秒。由 Date/Datetime 相减生成。
+- Time：时间表示，内部表示为自午夜以来的纳秒数。
+
+#### 其他类型
+- Boolean：布尔类型，有效位打包。
+- String：字符串数据（实际上是 Arrow LargeUtf8）。
+- Binary：存储为字节的数据。
+- Object：有限支持的数据类型，可以是任何值。
+- Categorical：字符串集合的分类编码。
+- Enum：字符串集合的固定分类编码。
+
+#### 浮点数
+
+Polars 通常遵循 IEEE 754 浮点标准用于 Float32 和 Float64，但有一些例外：
+- 任何 NaN 与任何其他 NaN 比较时相等，并且大于任何非 NaN 值。
+- 操作不保证零或 NaN 的符号，也不保证 NaN 值的有效负载。这不仅限于算术运算，例如排序或分组操作可能将所有零规范化为 +0，将所有 NaNs 规范化为没有负载的正 NaN，以便高效的相等性检查。
+
+Polars 始终尝试提供合理准确的浮点计算结果，但除非另有说明，否则不保证误差。通常 100% 准确的结果获取代价高昂（需要比 64 位浮点数更大的内部表示），因此总会存在一些误差。
+
+----------------------
+
+#### 示例
+
+#### 数值类型示例
+```rust
+use polars::prelude::*;
+
+let df = df! {
+    "int8_col" => &[1i8, 2, 3],
+    "int16_col" => &[100i16, 200, 300],
+    "int32_col" => &[1000i32, 2000, 3000],
+    "float64_col" => &[1.1f64, 2.2, 3.3],
+}.unwrap();
+
+println!("{}", df);
+```
+
+#### 嵌套类型示例
+```rust
+use polars::prelude::*;
+
+let df = df! {
+    "list_col" => &[vec![1, 2, 3], vec![4, 5, 6]],
+}.unwrap();
+
+println!("{}", df);
+```
+
+#### 时间类型示例
+```rust
+use polars::prelude::*;
+use chrono::NaiveDate;
+
+let df = df! {
+    "date_col" => &[NaiveDate::from_ymd(2021, 1, 1), NaiveDate::from_ymd(2021, 1, 2)],
+}.unwrap();
+
+println!("{}", df);
+```
+
+通过这些示例，你可以了解如何在 Rust 中使用 Polars 处理各种数据类型。
+
+### 28.3.6 数据结构 
+#### 数据结构
+
+Polars 提供的核心数据结构是 Series 和 DataFrame。
+
+##### Series
+
+Series 是一维数据结构，其中所有元素具有相同的数据类型。以下代码展示了如何创建一个简单的 Series 对象：
+
+```rust
+use polars::prelude::*;
+
+// 创建名为 "a" 的 Series 对象
+let s = Series::new("a", &[1, 2, 3, 4, 5]);
+
+// 打印 Series 对象
+println!("{}", s);
+```
+
+输出示例：
+
+```
+shape: (5,)
+Series: 'a' [i64]
+[
+    1
+    2
+    3
+    4
+    5
+]
+```
+
+##### DataFrame
+
+DataFrame 是由 Series 支持的二维数据结构，可以看作是一系列 Series 的抽象集合。可以对 DataFrame 执行类似 SQL 查询的操作，如 GROUP BY、JOIN、PIVOT 等，还可以定义自定义函数。
+
+```rust
+use chrono::NaiveDate;
+use polars::prelude::*;
+
+// 创建一个 DataFrame 对象
+let df: DataFrame = df!(
+    "integer" => &[1, 2, 3, 4, 5],
+    "date" => &[
+        NaiveDate::from_ymd_opt(2025, 1, 1).unwrap().and_hms_opt(0, 0, 0).unwrap(),
+        NaiveDate::from_ymd_opt(2025, 1, 2).unwrap().and_hms_opt(0, 0, 0).unwrap(),
+        NaiveDate::from_ymd_opt(2025, 1, 3).unwrap().and_hms_opt(0, 0, 0).unwrap(),
+        NaiveDate::from_ymd_opt(2025, 1, 4).unwrap().and_hms_opt(0, 0, 0).unwrap(),
+        NaiveDate::from_ymd_opt(2025, 1, 5).unwrap().and_hms_opt(0, 0, 0).unwrap(),
+    ],
+    "float" => &[4.0, 5.0, 6.0, 7.0, 8.0]
+)
+.unwrap();
+
+// 打印 DataFrame 对象
+println!("{}", df);
+```
+
+输出示例：
+
+```
+shape: (5, 3)
+┌─────────┬─────────────────────┬───────┐
+│ integer ┆ date                ┆ float │
+│ ---     ┆ ---                 ┆ ---   │
+│ i64     ┆ datetime[μs]        ┆ f64   │
+╞═════════╪═════════════════════╪═══════╡
+│ 1       ┆ 2022-01-01 00:00:00 ┆ 4.0   │
+│ 2       ┆ 2022-01-02 00:00:00 ┆ 5.0   │
+│ 3       ┆ 2022-01-03 00:00:00 ┆ 6.0   │
+│ 4       ┆ 2022-01-04 00:00:00 ┆ 7.0   │
+│ 5       ┆ 2022-01-05 00:00:00 ┆ 8.0   │
+└─────────┴─────────────────────┴───────┘
+```
+
+#### 查看数据
+
+以下部分将介绍如何查看 DataFrame 中的数据。我们将使用前面的 DataFrame 作为示例。
+
+##### Head
+
+`head` 函数默认显示 DataFrame 的前 5 行。你可以指定要查看的行数（例如 `df.head(10)`）。
+
+```rust
+let df_head = df.head(Some(3));
+
+// 打印前 3 行数据
+println!("{}", df_head);
+```
+
+输出示例：
+
+```
+shape: (3, 3)
+┌─────────┬─────────────────────┬───────┐
+│ integer ┆ date                ┆ float │
+│ ---     ┆ ---                 ┆ ---   │
+│ i64     ┆ datetime[μs]        ┆ f64   │
+╞═════════╪═════════════════════╪═══════╡
+│ 1       ┆ 2022-01-01 00:00:00 ┆ 4.0   │
+│ 2       ┆ 2022-01-02 00:00:00 ┆ 5.0   │
+│ 3       ┆ 2022-01-03 00:00:00 ┆ 6.0   │
+└─────────┴─────────────────────┴───────┘
+```
+
+##### Tail
+
+`tail` 函数显示 DataFrame 的最后 5 行。你也可以指定要查看的行数，类似于 `head`。
+
+```rust
+let df_tail = df.tail(Some(3));
+
+// 打印后 3 行数据
+println!("{}", df_tail);
+```
+
+输出示例：
+
+```
+shape: (3, 3)
+┌─────────┬─────────────────────┬───────┐
+│ integer ┆ date                ┆ float │
+│ ---     ┆ ---                 ┆ ---   │
+│ i64     ┆ datetime[μs]        ┆ f64   │
+╞═════════╪═════════════════════╪═══════╡
+│ 3       ┆ 2022-01-03 00:00:00 ┆ 6.0   │
+│ 4       ┆ 2022-01-04 00:00:00 ┆ 7.0   │
+│ 5       ┆ 2022-01-05 00:00:00 ┆ 8.0   │
+└─────────┴─────────────────────┴───────┘
+```
+
+##### Sample
+
+如果你想随机查看 DataFrame 中的一些数据，你可以使用 `sample`。`sample` 可以从 DataFrame 中获取 n 行随机行。
+
+```rust
+use polars::prelude::*;
+
+let n = Series::new("", &[2]);
+let sampled_df = df.sample_n(&n, false, false, None).unwrap();
+
+// 打印随机抽样的数据
+println!("{}", sampled_df);
+```
+
+输出示例：
+
+```
+shape: (2, 3)
+┌─────────┬─────────────────────┬───────┐
+│ integer ┆ date                ┆ float │
+│ ---     ┆ ---                 ┆ ---   │
+│ i64     ┆ datetime[μs]        ┆ f64   │
+╞═════════╪═════════════════════╪═══════╡
+│ 3       ┆ 2022-01-03 00:00:00 ┆ 6.0   │
+│ 2       ┆ 2022-01-02 00:00:00 ┆ 5.0   │
+└─────────┴─────────────────────┴───────┘
+```
+
+##### 描述（Describe）
+
+`describe` 返回 DataFrame 的摘要统计信息。如果可能，它将提供一些快速统计信息。
+
+注意，很遗憾，在 Rust 中，这个功能目前不可用。
+
+
+
+## 28.3 Polars进阶学习
+
+### 28.3.1 上下文 (Context )
+
+### 28.3.2 惰性模式 (Lazy Mode)
+
+### 28.3.3 流模式 (Streaming Mode)
+
+
+
 
 # Upcoming Chapters 
 
