@@ -50,24 +50,24 @@ export default defineConfig({
             //
             { label: '23. Polars 入门', link: '/chapters/chapter_23/' },
             {
-              label: '24. 时序数据库 Clickhouse【未完成】',
+              label: '24. 时序数据库 Clickhouse',
               link: '/chapters/chapter_24/'
             },
-            { label: '25. Unsafe', link: '/chapters/chapter_25/' },
-            { label: '26. 文档和测试', link: '/chapters/chapter_26/' },
+            { label: '25. Unsafe【未完成】', link: '/chapters/chapter_25/' },
+            { label: '26. 文档和测试【未完成】', link: '/chapters/chapter_26/' },
             {
               label: '27. 常见技术指标及其实现【本章代码未添加】',
               link: '/chapters/chapter_27/'
             },
-            { label: '28. 统计模型', link: '/chapters/chapter_28/' },
-            { label: '29. 引擎系统', link: '/chapters/chapter_29/' },
-            { label: '30. 日志系统', link: '/chapters/chapter_30/' },
-            { label: '31. 投资组合管理', link: '/chapters/chapter_31/' },
-            { label: '32. 量化计量经济学', link: '/chapters/chapter_32/' },
-            { label: '33. 限价指令簿', link: '/chapters/chapter_33/' },
-            { label: '34. 最优配置和执行', link: '/chapters/chapter_34/' },
-            { label: '35. 信息学、监管、风控', link: '/chapters/chapter_35/' },
-            { label: '36. 机器学习', link: '/chapters/chapter_36/' }
+            { label: '28. 统计模型【未完成】', link: '/chapters/chapter_28/' },
+            { label: '29. 引擎系统【未完成】', link: '/chapters/chapter_29/' },
+            { label: '30. 日志系统【未完成】', link: '/chapters/chapter_30/' },
+            { label: '31. 投资组合管理【未完成】', link: '/chapters/chapter_31/' },
+            { label: '32. 量化计量经济学【未完成】', link: '/chapters/chapter_32/' },
+            { label: '33. 限价指令簿【未完成】', link: '/chapters/chapter_33/' },
+            { label: '34. 最优配置和执行【未完成】', link: '/chapters/chapter_34/' },
+            { label: '35. 信息学、监管、风控【未完成】', link: '/chapters/chapter_35/' },
+            { label: '36. 机器学习【未完成】', link: '/chapters/chapter_36/' }
           ]
         }
       ]
