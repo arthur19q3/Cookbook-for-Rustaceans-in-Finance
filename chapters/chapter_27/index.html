@@ -1,0 +1,634 @@
+<!DOCTYPE html><html lang="en" dir="ltr" data-has-toc data-has-sidebar class="astro-fpze62lo"> <head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>常见技术指标及其实现【本章代码未添加】 | Cookbook for Rustaceans in Finance / Rust 量化金融开发指南</title><link rel="canonical"/><link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml"/><meta name="generator" content="Astro v4.3.3"/><meta name="generator" content="Starlight v0.17.3"/><meta property="og:title" content="常见技术指标及其实现【本章代码未添加】"/><meta property="og:type" content="article"/><meta property="og:url"/><meta property="og:locale" content="en"/><meta property="og:description"/><meta property="og:site_name" content="Cookbook for Rustaceans in Finance / Rust 量化金融开发指南"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:title" content="常见技术指标及其实现【本章代码未添加】"/><meta name="twitter:description"/><script>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+					const tmpl = document.querySelector(`#theme-icons`);
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script><template id="theme-icons"><svg aria-hidden="true" class="light astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z"/></svg> <svg aria-hidden="true" class="dark astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z"/></svg> <svg aria-hidden="true" class="auto astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg> </template><link rel="stylesheet" href="/_astro/index.4lckRRHb.css" /><script type="module" src="/_astro/hoisted.RLbdawI7.js"></script>
+<script type="module" src="/_astro/page.X_0NJa-z.js"></script></head> <body class="astro-fpze62lo"> <a href="#_top" class="astro-byjsuuaw">Skip to content</a>  <div class="page sl-flex astro-yxqmbg7i"> <header class="header astro-yxqmbg7i"><div class="header sl-flex astro-cyrhhlnw"> <div class="title-wrapper sl-flex astro-cyrhhlnw"> <a href="/" class="site-title sl-flex astro-ylanx5mn">  <span class="astro-ylanx5mn"> Cookbook for Rustaceans in Finance / Rust 量化金融开发指南 </span> </a>  </div> <div class="sl-flex astro-cyrhhlnw"> <site-search data-translations="{&#34;placeholder&#34;:&#34;Search&#34;}" class="astro-usz5hgcn"> <button data-open-modal disabled class="astro-usz5hgcn">  <svg aria-label="Search" class="astro-usz5hgcn astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg>  <span class="sl-hidden md:sl-block astro-usz5hgcn" aria-hidden="true">Search</span> <svg aria-label="(Press / to Search)" class="sl-hidden md:sl-block astro-usz5hgcn astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5Zm3 15a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v10Z"/><path d="M15.293 6.707a1 1 0 1 1 1.414 1.414l-8.485 8.486a1 1 0 0 1-1.414-1.415l8.485-8.485Z"/></svg>  </button> <dialog style="padding:0" aria-label="Search" class="astro-usz5hgcn"> <div class="dialog-frame sl-flex astro-usz5hgcn">  <button data-close-modal class="sl-flex md:sl-hidden astro-usz5hgcn"> Cancel </button> <div class="search-container astro-usz5hgcn"> <div id="starlight__search" class="astro-usz5hgcn"></div> </div> </div> </dialog> </site-search>    </div> <div class="sl-hidden md:sl-flex right-group astro-cyrhhlnw"> <div class="sl-flex social-icons astro-cyrhhlnw"> <a href="https://github.com/withastro/starlight" rel="me" class="sl-flex astro-3daxh4jc"><span class="sr-only astro-3daxh4jc">GitHub</span><svg aria-hidden="true" class="astro-3daxh4jc astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg> </a> </div> <starlight-theme-select>  <label style="--sl-select-width: 6.25em" class="astro-kc6u4lxd"> <span class="sr-only astro-kc6u4lxd">Select theme</span> <svg aria-hidden="true" class="icon label-icon astro-kc6u4lxd astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg>  <select value="auto" class="astro-kc6u4lxd"> <option value="dark" class="astro-kc6u4lxd">Dark</option><option value="light" class="astro-kc6u4lxd">Light</option><option value="auto" selected="true" class="astro-kc6u4lxd">Auto</option> </select> <svg aria-hidden="true" class="icon caret astro-kc6u4lxd astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg>  </label>  </starlight-theme-select>  <script>
+	StarlightThemeProvider.updatePickers();
+</script>   </div> </div> </header> <nav class="sidebar astro-yxqmbg7i" aria-label="Main"> <starlight-menu-button class="astro-eouth4v3"> <button aria-expanded="false" aria-label="Menu" aria-controls="starlight__sidebar" class="sl-flex md:sl-hidden astro-eouth4v3"> <svg aria-hidden="true" class="astro-eouth4v3 astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"/></svg>  </button> </starlight-menu-button>    <div id="starlight__sidebar" class="sidebar-pane astro-yxqmbg7i"> <div class="sidebar-content sl-flex astro-yxqmbg7i"> <ul class="top-level astro-4mcqxzkb"> <li class="astro-4mcqxzkb"> <details open class="astro-4mcqxzkb"> <summary class="astro-4mcqxzkb"> <div class="group-label astro-4mcqxzkb"> <span class="large astro-4mcqxzkb">PART I 基础部分 - 量化语境下的Rust编程基础</span>  </div> <svg aria-hidden="true" class="caret astro-4mcqxzkb astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg>  </summary> <ul class="astro-4mcqxzkb"> <li class="astro-4mcqxzkb"> <a href="/chapters/chapter_1" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">1. Rust 语言入门101</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_2/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">2. 格式化输出</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_3/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">3. 原生类型</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_4/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">4. 自定义类型 Struct &amp; Enum</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_5/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">5. 标准库类型</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_6/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">6. 变量和作用域</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_7/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">7. 类型系统</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_8/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">8. 类型转换</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_9/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">9. 流程控制</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_10/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">10. 函数、方法和闭包</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_11/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">11. 模块</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_12/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">12. Cargo 的进阶使用</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_13/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">13. 属性(Attributes)</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_14/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">14. 泛型进阶(Advanced Generic Type Usage)</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_15/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">15. 作用域规则和生命周期</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_16/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">16. 错误处理进阶(Advanced Error handling)</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_17/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">17. 特性(trait)详解</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_18/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">18. 创建自定义宏</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_19/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">19. 时间处理</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_20/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">20. Redis、爬虫、交易日库</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_21/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">21. 线程和管道</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_22/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">22. 文件处理</span>  </a> </li> </ul>  </details> </li><li class="astro-4mcqxzkb"> <details open class="astro-4mcqxzkb"> <summary class="astro-4mcqxzkb"> <div class="group-label astro-4mcqxzkb"> <span class="large astro-4mcqxzkb">PART II 进阶部分 - 量化实战</span>  </div> <svg aria-hidden="true" class="caret astro-4mcqxzkb astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg>  </summary> <ul class="astro-4mcqxzkb"> <li class="astro-4mcqxzkb"> <a href="/chapters/chapter_23/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">23. Polars 入门</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_24/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">24. 时序数据库 Clickhouse</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_25/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">25. Unsafe【未完成】</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_26/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">26. 文档和测试【未完成】</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_27/" aria-current="page" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">27. 常见技术指标及其实现【本章代码未添加】</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_28/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">28. 统计模型【未完成】</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_29/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">29. 引擎系统【未完成】</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_30/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">30. 日志系统【未完成】</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_31/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">31. 投资组合管理【未完成】</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_32/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">32. 量化计量经济学【未完成】</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_33/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">33. 限价指令簿【未完成】</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_34/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">34. 最优配置和执行【未完成】</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_35/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">35. 信息学、监管、风控【未完成】</span>  </a> </li><li class="astro-4mcqxzkb"> <a href="/chapters/chapter_36/" class="astro-4mcqxzkb"> <span class="astro-4mcqxzkb">36. 机器学习【未完成】</span>  </a> </li> </ul>  </details> </li> </ul>  <div class="md:sl-hidden"> <div class="mobile-preferences sl-flex astro-vfur2aw5"> <div class="sl-flex social-icons astro-vfur2aw5"> <a href="https://github.com/withastro/starlight" rel="me" class="sl-flex astro-3daxh4jc"><span class="sr-only astro-3daxh4jc">GitHub</span><svg aria-hidden="true" class="astro-3daxh4jc astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg> </a> </div> <starlight-theme-select>  <label style="--sl-select-width: 6.25em" class="astro-kc6u4lxd"> <span class="sr-only astro-kc6u4lxd">Select theme</span> <svg aria-hidden="true" class="icon label-icon astro-kc6u4lxd astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg>  <select value="auto" class="astro-kc6u4lxd"> <option value="dark" class="astro-kc6u4lxd">Dark</option><option value="light" class="astro-kc6u4lxd">Light</option><option value="auto" selected="true" class="astro-kc6u4lxd">Auto</option> </select> <svg aria-hidden="true" class="icon caret astro-kc6u4lxd astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg>  </label>  </starlight-theme-select>  <script>
+	StarlightThemeProvider.updatePickers();
+</script>   </div>  </div> </div> </div> </nav> <div class="main-frame astro-yxqmbg7i">  <div class="lg:sl-flex astro-3vvvt7cz"> <aside class="right-sidebar-container astro-3vvvt7cz"> <div class="right-sidebar astro-3vvvt7cz"> <div class="lg:sl-hidden astro-f63w33c6"><mobile-starlight-toc data-min-h="2" data-max-h="3" class="astro-q2mrqdva"><nav aria-labelledby="starlight__on-this-page--mobile" class="astro-q2mrqdva"><details id="starlight__mobile-toc" class="astro-q2mrqdva"><summary id="starlight__on-this-page--mobile" class="sl-flex astro-q2mrqdva"><div class="toggle sl-flex astro-q2mrqdva">On this page<svg aria-hidden="true" class="caret astro-q2mrqdva astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </div><span class="display-current astro-q2mrqdva"></span></summary><div class="dropdown astro-q2mrqdva"><ul class="isMobile astro-acifyk5h" style="--depth: 0;"> <li class="astro-acifyk5h" style="--depth: 0;"> <a href="#_top" class="astro-acifyk5h" style="--depth: 0;"> <span class="astro-acifyk5h" style="--depth: 0;">Overview</span> </a> <ul class="isMobile astro-acifyk5h" style="--depth: 1;"> <li class="astro-acifyk5h" style="--depth: 1;"> <a href="#271-随机指标stochastic-oscillator" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.1： 随机指标（Stochastic Oscillator）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#272布林带bollinger-bands" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.2：布林带（Bollinger Bands）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#273macd指标moving-average-convergence-divergence" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.3：MACD指标（Moving Average Convergence Divergence）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#274adx指标average-directional-index" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.4：ADX指标（Average Directional Index）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#275-roc指标rate-of-change" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.5 ：ROC指标（Rate of Change）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#276cci指标commodity-channel-index" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.6：CCI指标（Commodity Channel Index）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#277fibonacci回调和扩展水平" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.7：Fibonacci回调和扩展水平</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#278均线交叉策略" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.8：均线交叉策略</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#279-ichimoku云" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.9： Ichimoku云</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#2710威廉指标williams-r" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.10：威廉指标（Williams %R）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#2711均幅指标average-directional-movement-indexadx" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.11：均幅指标（Average Directional Movement Index，ADX）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#2712多重时间框架分析multiple-time-frame-analysis" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.12：多重时间框架分析（Multiple Time Frame Analysis）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#2713-指标的遴选和应用" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.13 指标的遴选和应用</span> </a>  </li> </ul>  </li> </ul> </div></details></nav></mobile-starlight-toc></div><div class="right-sidebar-panel sl-hidden lg:sl-block astro-f63w33c6"><div class="sl-container astro-f63w33c6"><starlight-toc data-min-h="2" data-max-h="3"><nav aria-labelledby="starlight__on-this-page"><h2 id="starlight__on-this-page">On this page</h2><ul class="astro-acifyk5h" style="--depth: 0;"> <li class="astro-acifyk5h" style="--depth: 0;"> <a href="#_top" class="astro-acifyk5h" style="--depth: 0;"> <span class="astro-acifyk5h" style="--depth: 0;">Overview</span> </a> <ul class="astro-acifyk5h" style="--depth: 1;"> <li class="astro-acifyk5h" style="--depth: 1;"> <a href="#271-随机指标stochastic-oscillator" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.1： 随机指标（Stochastic Oscillator）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#272布林带bollinger-bands" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.2：布林带（Bollinger Bands）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#273macd指标moving-average-convergence-divergence" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.3：MACD指标（Moving Average Convergence Divergence）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#274adx指标average-directional-index" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.4：ADX指标（Average Directional Index）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#275-roc指标rate-of-change" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.5 ：ROC指标（Rate of Change）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#276cci指标commodity-channel-index" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.6：CCI指标（Commodity Channel Index）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#277fibonacci回调和扩展水平" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.7：Fibonacci回调和扩展水平</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#278均线交叉策略" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.8：均线交叉策略</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#279-ichimoku云" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.9： Ichimoku云</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#2710威廉指标williams-r" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.10：威廉指标（Williams %R）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#2711均幅指标average-directional-movement-indexadx" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.11：均幅指标（Average Directional Movement Index，ADX）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#2712多重时间框架分析multiple-time-frame-analysis" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.12：多重时间框架分析（Multiple Time Frame Analysis）</span> </a>  </li><li class="astro-acifyk5h" style="--depth: 1;"> <a href="#2713-指标的遴选和应用" class="astro-acifyk5h" style="--depth: 1;"> <span class="astro-acifyk5h" style="--depth: 1;">27.13 指标的遴选和应用</span> </a>  </li> </ul>  </li> </ul> </nav></starlight-toc></div></div> </div> </aside> <div class="main-pane astro-3vvvt7cz">  <main data-pagefind-body lang="en" dir="ltr" class="astro-fpze62lo">    <div class="content-panel astro-vo2eo5fg"> <div class="sl-container astro-vo2eo5fg"> <h1 id="_top" class="astro-daoses2n">常见技术指标及其实现【本章代码未添加】</h1>  </div> </div>  <div class="content-panel astro-vo2eo5fg"> <div class="sl-container astro-vo2eo5fg"> <div class="sl-markdown-content"> <p>量化金融技术指标通常用于分析和预测金融市场的走势和价格变动。以下是一些常见的量化金融技术指标：</p>
+<p>以下是关于各种常见技术指标的信息，包括它们的名称、描述以及主要用途：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>技术指标</th><th>描述</th><th>主要用途</th></tr></thead><tbody><tr><td>移动平均线（Moving Averages）</td><td>包括简单移动平均线（SMA）和指数移动平均线（EMA），用于平滑价格数据以识别趋势。</td><td>识别价格趋势和确定趋势的方向。</td></tr><tr><td>相对强度指标（RSI）</td><td>衡量市场超买和超卖情况，用于判断价格是否过度波动。</td><td>识别市场的超买和超卖情况，判断价格是否具备反转潜力。</td></tr><tr><td>随机指标（Stochastic Oscillator）</td><td>用于测量价格相对于其价格范围的位置，以确定超买和超卖情况。</td><td>识别资产的超买和超卖情况，产生买卖信号。</td></tr><tr><td>布林带（Bollinger Bands）</td><td>通过在价格周围绘制波动性通道来识别价格波动性和趋势。</td><td>识别价格波动性，确定支撑和阻力水平。</td></tr><tr><td>MACD 指标（Moving Average Convergence Divergence）</td><td>结合不同期限的移动平均线以识别价格趋势的强度和方向。</td><td>识别价格的趋势、方向和潜在的交叉点。</td></tr><tr><td>随机强度指标（RSI）</td><td>衡量一种资产相对于市场指数的表现。</td><td>评估资产的相对强度和相对弱点。</td></tr><tr><td>ATR指标（Average True Range）</td><td>测量资产的波动性，帮助确定止损和止盈水平。</td><td>评估资产的波动性，确定适当的风险管理策略。</td></tr><tr><td>ADX指标（Average Directional Index）</td><td>衡量趋势的强度和方向。</td><td>识别市场趋势的强度和方向，帮助决策进出场时机。</td></tr><tr><td>ROC指标（Rate of Change）</td><td>衡量价格百分比变化以识别趋势的加速或减速。</td><td>识别价格趋势的速度变化，潜在的反转或加速。</td></tr><tr><td>CCI指标（Commodity Channel Index）</td><td>用于识别价格相对于其统计平均值的偏离。</td><td>评估资产是否处于超买或超卖状态。</td></tr><tr><td>Fibonacci回调和扩展水平</td><td>基于黄金比例的数学工具，用于预测支撑和阻力水平。</td><td>识别潜在的支撑和阻力水平，帮助决策进出场时机。</td></tr><tr><td>成交量分析指标</td><td>包括成交量柱状图和成交量移动平均线，用于分析市场的活跃度和力量。</td><td>评估市场活跃度，辅助价格趋势分析。</td></tr><tr><td>均线交叉</td><td>通过不同周期的移动平均线的交叉来识别买入和卖出信号。</td><td>识别趋势的改变，产生买卖信号。</td></tr><tr><td>Ichimoku云</td><td>提供了有关趋势、支撑和阻力水平的综合信息。</td><td>提供多个指标的综合信息，帮助识别趋势和支撑/阻力水平。</td></tr><tr><td>威廉指标（Williams %R）</td><td>类似于随机指标，用于测量超买和超卖情况。</td><td>评估资产是否处于超买或超卖状态，产生买卖信号。</td></tr><tr><td>均幅指标（Average Directional Movement Index，ADX）</td><td>用于确定趋势的方向和强度。</td><td>识别市场的趋势方向和趋势的强度，帮助决策进出场时机。</td></tr><tr><td>多重时间框架分析（Multiple Time Frame Analysis）</td><td>同时使用不同时间周期的图表来确认趋势。</td><td>提供更全面的市场分析，减少错误信号的可能性。</td></tr></tbody></table>
+<p>这些技术指标是量化金融和股票市场分析中常用的工具，交易者使用它们来帮助做出买入和卖出决策，评估市场趋势和风险，并制定有效的交易策略。根据市场情况和交易者的需求，可以选择使用其中一个或多个指标来进行分析。</p>
+<p>通常各个主要编程语言都有用于技术分析（Technical Analysis，TA）的库和工具，用于在金融市场数据上执行各种技术指标和分析。在C、Go 和 Python 中常见的 TA 库一般有这些：</p>
+<p><strong>C语言：</strong></p>
+<ol>
+<li><strong>TA-Lib（Technical Analysis Library）：</strong> <code dir="auto">TA-Lib</code> 是一种广泛使用的 C 库，提供了超过150种技术指标和图表模式的计算功能。它支持各种不同类型的金融市场数据，并且可以轻松与 C/C++ 项目集成。</li>
+</ol>
+<p><strong>Go语言：</strong></p>
+<ol>
+<li><strong>tulipindicators：</strong> tulipindicators 是一个用 Go 编写的开源技术指标库，它提供了多种常用技术指标的实现。这个库易于使用，可以在 Go 项目中方便地集成。</li>
+<li><strong>go-talib：</strong> ta 的 go 语言 wrapper</li>
+</ol>
+<p><strong>Python语言：</strong></p>
+<ol>
+<li><strong>Pandas TA：</strong> Pandas TA 是一个基于 Python 的库，构建在 Pandas DataFrame 之上，它提供了超过150个技术指标的计算功能。Pandas TA 与 Pandas 无缝集成，使得在Python中进行金融数据分析变得非常方便。</li>
+<li><strong>TA-Lib for Python：</strong> 与C版本类似，TA-Lib也有适用于Python的接口，允许Python开发者使用TA-Lib中的技术指标。这个库通过绑定C库的方式实现了高性能。</li>
+</ol>
+<p>作为量化金融系统部署的前提之一，在Rust社区的生态中，当然也具有用于技术分析的库，虽然它的生态系统可能没有像Python或C那样丰富，但仍然存在一些可以用于量化金融分析的工具和库，配合自研的技术指标库和数学库，在生产环境下也足够使用。</p>
+<p>以下是一些常见的可用于技术分析和量化金融的Rust库，：</p>
+<ol>
+<li>
+<p><strong>TAlib-rs：</strong> TAlib-rs 是一个 Rust 的 TA-Lib 绑定，它允许 Rust 开发者使用 TA-Lib 中的技术指标功能。TA-Lib 包含了150多种技术指标的实现，因此通过TAlib-rs，你可以在Rust中执行广泛的技术分</p>
+</li>
+<li>
+<p><strong>RustQuant：</strong> Rust 中的量化金融工具库。同时也是 Rust 中最大、最成熟的期权定价库。</p>
+</li>
+<li>
+<p><strong>investments:</strong> 一个用 Rust 编写的开源库，旨在提供一些用于金融和投资的工具和函数。这个库可能包括用于计算投资回报率、分析金融数据以及执行基本的投资分析的功能。</p>
+</li>
+</ol>
+<p>Rust 在金融领域的应用确实相对较新，因此可用的库和工具有一定的可能阙如。不过，随着 Rust 的不断发展和生态系统的壮大，我预期将会有更多的金融分析和量化交易工具出现。当你已经熟悉 Rust 编程，并且希望在此领域进行开发的时候，也可以考虑一下为 Rust 社区贡献更多的金融相关项目和库。</p>
+<p>好，之前在第3章我们已经实现了 SMA、EMA 和 RSI，现在我们来尝试进行一些其他实用技术分析指标的 rust 实现。</p>
+<h3 id="271-随机指标stochastic-oscillator">27.1： 随机指标（Stochastic Oscillator）</h3>
+<p>在金融市场中，很多投资者会通过尝试识别**“超买”（Overbought）<strong>和</strong>”超卖”（Oversold）**状态并通过自己对这些状态的应对策略来套利。 超买是指市场或特定资产的价格被认为高于其正常或合理的价值水平的情况。这通常发生在价格迅速上升后，投资者情绪变得过于乐观，导致购买压力增加。超买时，市场可能出现过度购买的现象，价格可能会进一步下跌或趋于平稳。而超卖是指市场或特定资产的价格被认为低于其正常或合理的价值水平的情况。这通常发生在价格迅速下跌后，投资者情绪变得过于悲观，导致卖出压力增加。超卖时，市场可能出现过度卖出的现象，价格可能会进一步上涨或趋于平稳。</p>
+<p>一些技术指标如相对强度指标（RSI）或随机指标（Stochastic Oscillator）常用来识别超买情况。当这些指标的数值超过特定阈值（通常为70～80），就被视为市场处于超买状态，可能预示着价格的下跌。而当这些指标的数值低于特定阈值（通常为20～30），就被视为市场处于超卖状态，可能预示着价格的上涨。</p>
+<p>之前我们在第3章对RSI已经有所了解。现在我们再来学习一下随机指标，它由George C. Lane 在20世纪50年代开发，是一种相对简单但有效的、常用于技术分析的动量指标。</p>
+<p>随机指标通常由以下几个主要组成部分构成：</p>
+<ol>
+<li>
+<p><strong>%K线（%K Line）：</strong> %K线是当前价格与一段时间内的价格范围的比率，通常以百分比表示。它可以用以下公式计算：</p>
+<p>%K = [(当前收盘价 - 最低价) / (最高价 - 最低价)] * 100</p>
+<p>%K线的计算结果在0到100之间波动，可以帮助识别价格相对于给定周期内的价格范围的位置。</p>
+</li>
+<li>
+<p><strong>%D线（%D Line）：</strong> %D线是%K线的平滑线，通常使用移动平均线进行平滑处理。这有助于减少%K线的噪音，提供更可靠的信号。%D线通常使用简单移动平均线（SMA）或指数移动平均线（EMA）进行计算。</p>
+</li>
+<li>
+<p><strong>超买和超卖水平：</strong> 在随机指标中，通常会绘制两个水平线，一个表示超买水平（通常为80），另一个表示超卖水平（通常为20）。当%K线上穿80时，表明市场可能处于超买状态，可能会发生价格下跌。当%K线下穿20时，表明市场可能处于超卖状态，可能会发生价格上涨。</p>
+</li>
+</ol>
+<p>随机指标的典型用法包括：</p>
+<ul>
+<li>当%K线上穿%D线时，产生买入信号，表示价格可能上涨。</li>
+<li>当%K线下穿%D线时，产生卖出信号，表示价格可能下跌。</li>
+<li>当%K线位于超买水平以上时，可能发生卖出信号。</li>
+<li>当%K线位于超卖水平以下时，可能发生买入信号。</li>
+</ul>
+<p>需要注意的是，随机指标并不是一种绝对的买卖信号工具，而是用于辅助决策的指标。它常常与其他技术指标和分析工具一起使用，以提供更全面的市场分析。交易者还应谨慎使用随机指标，特别是在非趋势市场中，因为在价格范围内波动较大时，可能会产生误导性的信号。因此，对于每个市场环境，需要根据其他指标和分析来进行综合判断。</p>
+<p>以下是Stochastic Oscillator（随机指标）和RSI（相对强度指标）之间的主要区别：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特征</th><th>Stochastic Oscillator</th><th>相对强度指标 (RSI)</th></tr></thead><tbody><tr><td>类型</td><td>动量指标</td><td>动量指标</td></tr><tr><td>创建者</td><td>George C. Lane</td><td>J. Welles Wilder</td></tr><tr><td>计算方式</td><td>基于当前价格与价格范围的比率</td><td>基于平均增益和平均损失</td></tr><tr><td>计算结果的范围</td><td>0 到 100</td><td>0 到 100</td></tr><tr><td>主要目的</td><td>识别超买和超卖情况，以及价格趋势变化</td><td>衡量资产价格的强弱</td></tr><tr><td>%K线和%D线</td><td>包括%K线和%D线，%D线是%K线的平滑线</td><td>通常只有一个RSI线</td></tr><tr><td>超买和超卖水平</td><td>通常在80和20之间，用于产生买卖信号</td><td>通常在70和30之间，用于产生买卖信号</td></tr><tr><td>信号产生</td><td>当%K线上穿%D线时产生买入信号，下穿时产生卖出信号</td><td>当RSI线上穿70时产生卖出信号，下穿30时产生买入信号</td></tr><tr><td>应用领域</td><td>用于识别超买和超卖情况以及价格的反转点</td><td>用于衡量资产的强弱并确定买卖时机</td></tr><tr><td>时间周期</td><td>通常使用短期和长期周期进行计算</td><td>通常使用14个交易日周期进行计算</td></tr><tr><td>常见用途</td><td>适用于不同市场和资产类别，特别是适用于振荡市场</td><td>适用于评估股票、期货和外汇等资产的强弱</td></tr></tbody></table>
+<p>需要注意的是，虽然Stochastic Oscillator和RSI都是用于动量分析的指标，但它们的计算方式、信号产生方式和主要应用方向都略有不同。交易者可以根据自己的交易策略和市场条件选择使用其中一个或两者结合使用，以辅助决策。</p>
+<h3 id="272布林带bollinger-bands">27.2：布林带（Bollinger Bands）</h3>
+<p>布林带（Bollinger Bands）是一种常用于技术分析的指标，旨在帮助交易者识别资产价格的波动性和趋势方向。它由约翰·布林格（John Bollinger）于1980年代开发，是一种基于统计学原理的工具。以下是对布林带的详细解释：</p>
+<p><strong>布林带的构成：</strong> 布林带由以下三个主要部分组成：</p>
+<ol>
+<li>
+<p><strong>中轨（中间线）：</strong> 中轨是布林带的中心线，通常是简单移动平均线（SMA）。中轨的计算通常基于一段固定的时间周期，例如20个交易日的收盘价的SMA。这个中轨代表了资产价格的趋势方向。</p>
+</li>
+<li>
+<p><strong>上轨（上限线）：</strong> 上轨是位于中轨上方的线，其位置通常是中轨加上两倍标准差（Standard Deviation）的值。标准差是一种测量数据分散程度的统计指标，用于衡量价格波动性。上轨代表了资产价格的波动性，通常用来识别价格上涨的潜力。</p>
+</li>
+<li>
+<p><strong>下轨（下限线）：</strong> 下轨是位于中轨下方的线，其位置通常是中轨减去两倍标准差的值。下轨同样代表了资产价格的波动性，通常用来识别价格下跌的潜力。</p>
+</li>
+</ol>
+<p><strong>布林带的应用：</strong> 布林带有以下几个主要的应用和用途：</p>
+<ol>
+<li>
+<p><strong>波动性识别：</strong> 布林带的宽窄可以用来衡量价格波动性。带宽收窄通常表示价格波动性较低，而带宽扩大则表示价格波动性较高。这可以帮助交易者判断市场的活跃度和价格趋势的稳定性。</p>
+</li>
+<li>
+<p><strong>趋势识别：</strong> 当价格趋势明显时，布林带的上轨和下轨可以帮助确定支撑和阻力水平。当价格触及或穿越上轨时，可能表明价格上涨趋势强劲，而当价格触及或穿越下轨时，可能表明价格下跌趋势较强。</p>
+</li>
+<li>
+<p><strong>超买和超卖情况：</strong> 当价格接近或穿越布林带的上轨时，可能表明市场处于超买状态，因为价格偏离了其正常波动范围。相反，当价格接近或穿越布林带的下轨时，可能表明市场处于超卖状态。</p>
+</li>
+<li>
+<p><strong>交易信号：</strong> 交易者经常使用布林带产生买入和卖出信号。一种常见的策略是在价格触及上轨时卖出，在价格触及下轨时买入。这可以帮助捕捉价格的短期波动。</p>
+</li>
+</ol>
+<p>需要注意的是，布林带是一种辅助工具，通常需要与其他技术指标和市场分析方法结合使用。交易者应谨慎使用布林带信号，并考虑市场的整体背景和趋势。此外，布林带的参数（如时间周期和标准差倍数）可以根据不同市场和交易策略进行调整。</p>
+<h3 id="273macd指标moving-average-convergence-divergence">27.3：MACD指标（Moving Average Convergence Divergence）</h3>
+<p>MACD（Moving Average Convergence Divergence）是一种常用于技术分析的动量指标，用于衡量资产价格趋势的强度和方向。它由杰拉尔德·阿佩尔（Gerald Appel）于1979年首次引入，并且在技术分析中广泛应用。以下是对MACD指标的详细解释：</p>
+<p><strong>MACD指标的构成：</strong> MACD指标由以下三个主要组成部分构成：</p>
+<ol>
+<li>
+<p><strong>快速线（Fast Line）：</strong> 也称为MACD线（MACD Line），是资产价格的短期移动平均线与长期移动平均线之间的差值。通常，快速线的计算基于12个交易日的短期移动平均线减去26个交易日的长期移动平均线。</p>
+<p>快速线（MACD Line） = 12日EMA - 26日EMA</p>
+<p>其中，EMA代表指数加权移动平均线（Exponential Moving Average），它使得近期价格对快速线的影响较大。</p>
+</li>
+<li>
+<p><strong>慢速线（Slow Line）：</strong> 也称为信号线（Signal Line），是快速线的移动平均线。通常，慢速线的计算使用快速线的9日EMA。</p>
+<p>慢速线（Signal Line） = 9日EMA(MACD Line)</p>
+</li>
+<li>
+<p><strong>MACD柱状图（MACD Histogram）：</strong> MACD柱状图表示快速线和慢速线之间的差值，用于展示价格趋势的强度和方向。MACD柱状图的计算方法是：</p>
+<p>MACD柱状图 = 快速线（MACD Line） - 慢速线（Signal Line）</p>
+</li>
+</ol>
+<p><strong>MACD的应用：</strong> MACD指标可以用于以下几个方面的技术分析：</p>
+<ol>
+<li>
+<p><strong>趋势识别：</strong> 当MACD线位于慢速线上方并向上移动时，通常表示价格处于上升趋势，这可能是买入信号。相反，当MACD线位于慢速线下方并向下移动时，通常表示价格处于下降趋势，这可能是卖出信号。</p>
+</li>
+<li>
+<p><strong>交叉信号：</strong> 当MACD线上穿慢速线时，产生买入信号，表示价格可能上涨。当MACD线下穿慢速线时，产生卖出信号，表示价格可能下跌。</p>
+</li>
+<li>
+<p><strong>背离（Divergence）：</strong> 当MACD指标与价格图形出现背离时，可能表示趋势的弱化或反转。例如，如果价格创下新低而MACD柱状图创下高点，这可能是价格反转的信号。</p>
+</li>
+<li>
+<p><strong>柱状图的观察：</strong> MACD柱状图的高度可以反映价格趋势的强度。较高的柱状图表示价格动能较强，较低的柱状图表示价格动能较弱。</p>
+</li>
+</ol>
+<p>需要注意的是，MACD是一种多功能的指标，可以用于不同市场和不同时间周期的分析。它通常需要与其他技术指标和市场分析方法结合使用，以提供更全面的市场信息。MACD的参数可以根据具体情况进行调整，以满足不同的交易策略和市场条件。</p>
+<h3 id="274adx指标average-directional-index">27.4：ADX指标（Average Directional Index）</h3>
+<p>ADX（Average Directional Index）是一种用于技术分析的指标，旨在衡量资产价格趋势的强度和方向。ADX是由威尔斯·威尔德（Welles Wilder）于1978年首次引入，它通常与另外两个相关的指标，即DI+（Positive Directional Indicator）和DI-（Negative Directional Indicator）一起使用。以下是对ADX指标的详细解释：</p>
+<p><strong>ADX指标的构成：</strong> ADX指标主要由以下几个部分组成：</p>
+<ol>
+<li>
+<p><strong>DI+（Positive Directional Indicator）：</strong> DI+用于测量正价格移动的强度和方向。它基于价格的正向变化量和总变化量来计算，然后用百分比来表示正向变化的比率。DI+的计算方式如下：</p>
+<p>DI+ = （今日最高价 - 昨日最高价） / 今日最高价与昨日最高价之差 * 100</p>
+</li>
+<li>
+<p><strong>DI-（Negative Directional Indicator）：</strong> DI-用于测量负价格移动的强度和方向。它类似于DI+，但是针对价格的负向变化量进行计算。DI-的计算方式如下：</p>
+<p>DI- = （昨日最低价 - 今日最低价） / 昨日最低价与今日最低价之差 * 100</p>
+</li>
+<li>
+<p><strong>DX（Directional Movement Index）：</strong> DX是计算DI+和DI-之间的相对关系的指标，用于确定价格趋势的方向。DX的计算方式如下：</p>
+<p>DX = |（DI+ - DI-）| / （DI+ + DI-） * 100</p>
+</li>
+<li>
+<p><strong>ADX（Average Directional Index）：</strong> ADX是DX的平滑移动平均线，通常使用14个交易日的EMA来计算。ADX的计算方式如下：</p>
+<p>ADX = 14日EMA(DX)</p>
+</li>
+</ol>
+<p><strong>ADX的应用：</strong> ADX指标可以用于以下几个方面的技术分析：</p>
+<ol>
+<li>
+<p><strong>趋势强度：</strong> ADX可以帮助交易者确定价格趋势的强度。当ADX值高于某一阈值（通常为25或30）时，表示价格趋势强劲。较高的ADX值可能意味着趋势可能会持续。反之，ADX值低于阈值时，表示价格可能处于横盘或弱势市场中。</p>
+</li>
+<li>
+<p><strong>趋势方向：</strong> 当DI+高于DI-时，表示市场可能处于上升趋势。当DI-高于DI+时，表示市场可能处于下降趋势。ADX的方向可以帮助确定趋势的方向。</p>
+</li>
+<li>
+<p><strong>背离（Divergence）：</strong> 当价格趋势与ADX指标出现背离时，可能表示趋势的强度正在减弱，这可能是趋势反转的信号。</p>
+</li>
+</ol>
+<p>需要注意的是，ADX指标主要用于衡量趋势的强度和方向，而不是价格的绝对水平。它通常需要与其他技术指标和分析方法结合使用，以提供更全面的市场信息。ADX的参数（如时间周期和阈值）可以根据具体情况进行调整，以满足不同的交易策略和市场条件。</p>
+<h3 id="275-roc指标rate-of-change">27.5 ：ROC指标（Rate of Change）</h3>
+<p>ROC（Rate of Change）指标是一种用于技术分析的动量指标，用于衡量资产价格的百分比变化率。ROC指标的主要目的是帮助交易者识别价格趋势的加速或减速，以及潜在的超买和超卖情况。以下是对ROC指标的详细解释：</p>
+<p><strong>ROC指标的计算：</strong> ROC指标的计算非常简单，它通常基于某一时间周期内的价格变化。计算ROC的一般步骤如下：</p>
+<ol>
+<li>
+<p>选择一个特定的时间周期（例如，14个交易日）。</p>
+</li>
+<li>
+<p>计算当前时刻的价格与过去一段时间内的价格之间的百分比变化率。计算公式如下：</p>
+<p>ROC = （当前价格 - 过去一段时间内的价格） / 过去一段时间内的价格 * 100</p>
+<p>过去一段时间内的价格可以是开盘价、收盘价或任何其他价格。</p>
+</li>
+<li>
+<p>最终得到的ROC值表示了在给定时间周期内价格的变化率，通常以百分比形式表示。</p>
+</li>
+</ol>
+<p><strong>ROC的应用：</strong> ROC指标可以用于以下几个方面的技术分析：</p>
+<ol>
+<li>
+<p><strong>趋势识别：</strong> ROC可以帮助交易者识别价格趋势的加速或减速。当ROC值处于正数区域时，表示价格上涨的速度较快；当ROC值处于负数区域时，表示价格下跌的速度较快。趋势的加速通常被视为买入信号或卖出信号，具体取决于市场情况。</p>
+</li>
+<li>
+<p><strong>超买和超卖情况：</strong> ROC指标也可以用来识别资产的超买和超卖情况。当ROC值迅速上升并达到较高水平时，可能表示市场处于超买状态，价格可能会下跌。相反，当ROC值迅速下降并达到较低水平时，可能表示市场处于超卖状态，价格可能会上涨。</p>
+</li>
+<li>
+<p><strong>背离（Divergence）：</strong> 当价格走势与ROC指标出现背离时，可能表示趋势的弱化或反转。例如，如果价格创下新高而ROC值没有创新高，这可能是价格反转的信号。</p>
+</li>
+</ol>
+<p>需要注意的是，ROC指标通常需要与其他技术指标和市场分析方法结合使用，以提供更全面的市场信息。ROC的参数（如时间周期）可以根据具体情况进行调整，以满足不同的交易策略和市场条件。</p>
+<h3 id="276cci指标commodity-channel-index">27.6：CCI指标（Commodity Channel Index）</h3>
+<p>CCI（Commodity Channel Index）是一种常用于技术分析的指标，旨在帮助交易者识别资产价格是否超买或超卖，以及趋势的变化。CCI指标最初是由唐纳德·兰伯特（Donald Lambert）在20世纪80年代为商品市场设计的，但后来也广泛用于其他金融市场的技术分析。以下是对CCI指标的详细解释：</p>
+<p><strong>CCI指标的计算：</strong> CCI指标的计算涉及以下几个步骤：</p>
+<ol>
+<li>
+<p><strong>计算Typical Price（典型价格）：</strong> 典型价格是每个交易日的最高价、最低价和收盘价的均值。计算典型价格的公式如下：</p>
+<p>典型价格 = （最高价 + 最低价 + 收盘价） / 3</p>
+</li>
+<li>
+<p><strong>计算平均典型价格（平均价）：</strong> 平均典型价格是过去一段时间内的典型价格的简单移动平均值。通常，使用一个特定的时间周期（例如20个交易日）来计算平均典型价格。</p>
+</li>
+<li>
+<p><strong>计算平均绝对偏差（Mean Absolute Deviation）：</strong> 平均绝对偏差是每个交易日的典型价格与平均典型价格之间的差的绝对值的平均值。计算平均绝对偏差的公式如下：</p>
+<p>平均绝对偏差 = 平均值（|典型价格 - 平均典型价格|）</p>
+</li>
+<li>
+<p><strong>计算CCI指标：</strong> CCI指标的计算使用平均绝对偏差和一个常数倍数（通常为0.015）来计算。计算CCI的公式如下：</p>
+<p>CCI = （典型价格 - 平均典型价格） / （0.015 * 平均绝对偏差）</p>
+</li>
+</ol>
+<p><strong>CCI的应用：</strong> CCI指标可以用于以下几个方面的技术分析：</p>
+<ol>
+<li>
+<p><strong>超买和超卖情况：</strong> CCI指标通常在一个范围内波动，正值表示资产价格相对较高，负值表示价格相对较低。当CCI值大于100时，可能表示市场超买，价格可能会下跌。当CCI值小于-100时，可能表示市场超卖，价格可能会上涨。</p>
+</li>
+<li>
+<p><strong>趋势确认：</strong> CCI指标也可以用于确认价格趋势。当CCI持续保持正值时，可能表示上升趋势；当CCI持续保持负值时，可能表示下降趋势。</p>
+</li>
+<li>
+<p><strong>背离（Divergence）：</strong> 当CCI指标与价格图形出现背离时，可能表示趋势的弱化或反转。例如，如果价格创下新高而CCI没有创新高，这可能是价格反转的信号。</p>
+</li>
+</ol>
+<p>需要注意的是，CCI指标通常需要与其他技术指标和市场分析方法结合使用，以提供更全面的市场信息。CCI的参数（如时间周期和常数倍数）可以根据具体情况进行调整，以满足不同的交易策略和市场条件。</p>
+<h3 id="277fibonacci回调和扩展水平">27.7：Fibonacci回调和扩展水平</h3>
+<p>Fibonacci回调和扩展水平是一种基于黄金比例和斐波那契数列的技术分析工具，用于预测资产价格的支撑和阻力水平，以及可能的价格反转点。这些水平是根据斐波那契数列中的特定比率来计算的。以下是对Fibonacci回调和扩展水平的详细解释：</p>
+<p><strong>1. Fibonacci回调水平：</strong></p>
+<ul>
+<li>
+<p><strong>0%水平：</strong> 这是价格上涨或下跌前的起始点。它代表了没有任何价格变化的水平。</p>
+</li>
+<li>
+<p><strong>23.6%水平：</strong> 这是最小的Fibonacci回调水平，通常用于标识价格回调的起始点。在上升趋势中，价格可能在达到一定高度后回调至此水平。在下降趋势中，价格可能在达到一定低点后回调至此水平。</p>
+</li>
+<li>
+<p><strong>38.2%水平：</strong> 这是另一个重要的Fibonacci回调水平，通常用于识别更深的回调。在趋势中，价格可能在达到高点或低点后回调至此水平。</p>
+</li>
+<li>
+<p><strong>50%水平：</strong> 这不是斐波那契数列的一部分，但它在技术分析中仍然常常被视为重要水平。价格回调至50%水平通常表示一种中性或平衡状态。</p>
+</li>
+<li>
+<p><strong>61.8%水平：</strong> 这是最常用的Fibonacci回调水平之一，通常用于标识较深的回调。在趋势中，价格可能在达到高点或低点后回调至此水平。</p>
+</li>
+<li>
+<p><strong>76.4%水平：</strong> 这是另一个较深的回调水平，有时被用作支撑或阻力水平。</p>
+</li>
+</ul>
+<p><strong>2. Fibonacci扩展水平：</strong></p>
+<ul>
+<li>
+<p><strong>100%水平：</strong> 这是价格的起始点，与0%水平相对应。在技术分析中，价格达到100%水平通常表示可能出现完全的价格反转。</p>
+</li>
+<li>
+<p><strong>123.6%水平：</strong> 这是用于标识较深的价格反转点的扩展水平。在趋势中，价格可能在达到一定高度后反转至此水平。</p>
+</li>
+<li>
+<p><strong>138.2%水平：</strong> 这是另一个扩展水平，通常用于识别更深的价格反转。</p>
+</li>
+<li>
+<p><strong>161.8%水平：</strong> 这是最常用的Fibonacci扩展水平之一，通常用于标识较深的价格反转点。</p>
+</li>
+<li>
+<p><strong>200%水平：</strong> 这是价格的终点，与0%水平相对应。在技术分析中，价格达到200%水平通常表示可能出现完全的价格反转。</p>
+</li>
+</ul>
+<p>Fibonacci回调和扩展水平可以帮助交易者识别可能的支撑和阻力水平，以及价格反转的潜在点。然而，需要注意的是，这些水平并不是绝对的，不能单独用于决策。它们通常需要与其他技术指标和分析方法结合使用，以提供更全面的市场信息。此外，市场中的价格行为可能会受到多种因素的影响，因此仍需要谨慎分析。</p>
+<h3 id="278均线交叉策略">27.8：均线交叉策略</h3>
+<p>均线交叉策略是一种常用于技术分析和股票交易的简单但有效的策略。该策略利用不同时间周期的移动平均线的交叉来识别买入和卖出信号。以下是对均线交叉策略的详细解释：</p>
+<p><strong>1. 移动平均线（Moving Averages）：</strong> 均线交叉策略的核心是使用移动平均线，通常包括以下两种类型：</p>
+<ul>
+<li>
+<p><strong>短期移动平均线（Short-term Moving Average）：</strong> 通常使用较短的时间周期，如10天或20天，用来反映较短期的价格趋势。</p>
+</li>
+<li>
+<p><strong>长期移动平均线（Long-term Moving Average）：</strong> 通常使用较长的时间周期，如50天或200天，用来反映较长期的价格趋势。</p>
+</li>
+</ul>
+<p><strong>2. 买入信号：</strong> 均线交叉策略的买入信号通常发生在短期移动平均线向上穿越长期移动平均线时，这被称为“黄金交叉”。这意味着短期趋势正在上升，可能是买入的好时机。</p>
+<p><strong>3. 卖出信号：</strong> 均线交叉策略的卖出信号通常发生在短期移动平均线向下穿越长期移动平均线时，这被称为“死亡交叉”。这意味着短期趋势正在下降，可能是卖出的好时机。</p>
+<p><strong>4. 确认信号：</strong> 一些交易者使用其他技术指标或价格模式来确认均线交叉信号的有效性。例如，他们可能会查看相对强度指标（RSI）或MACD指标，以确保市场处于趋势状态。</p>
+<p><strong>5. 风险管理：</strong> 在执行均线交叉策略时，风险管理非常重要。交易者通常会设定止损和止盈水平，以控制风险并保护利润。止损水平通常设置在买入价格下方，而止盈水平则根据市场条件和交易者的目标而定。</p>
+<p><strong>6. 适用性：</strong> 均线交叉策略适用于不同市场和资产，包括股票、外汇、期货和加密货币。然而，它可能在不同市场环境下表现不同，因此需要根据市场情况进行调整。</p>
+<p><strong>7. 缺点：</strong> 均线交叉策略有时会产生虚假信号，特别是在市场处于横盘或震荡状态时。因此，交易者需要谨慎使用，并结合其他指标和分析方法来提高准确性。</p>
+<p>总之，均线交叉策略是一种简单但常用的技术分析策略，用于识别买入和卖出信号。它可以作为交易决策的起点，但交易者需要谨慎使用，并结合其他因素来进行综合分析和风险管理。</p>
+<h3 id="279-ichimoku云">27.9： Ichimoku云</h3>
+<p><img src="/img_1.png" alt="img_1.png">
+Ichimoku 云，也称为<strong>一目均衡图</strong>，是一种综合性的技术分析工具，最初由日本分析师兼记者一目山人（Goichi Hosoda）在20世纪20年代开发。该工具旨在提供有关资产价格趋势、支撑和阻力水平以及未来价格走势的综合信息。Ichimoku 云由多个组成部分组成，以下是对每个组成部分的详细解释：</p>
+<p><strong>1. 转换线（転換線 Tenkan-sen）：</strong> 转换线是计算 Ichimoku 云的第一个组成部分，通常表示为红色线。它是最近9个交易日的最高价和最低价的平均值。转换线用于提供近期价格走势的参考。</p>
+<p><strong>2. 基准线（基準線 Kijun-sen）：</strong> 基准线是计算 Ichimoku 云的第二个组成部分，通常表示为蓝色线。它是最近26个交易日的最高价和最低价的平均值。基准线用于提供中期价格走势的参考。</p>
+<p><strong>3. 云层（先行スパン Senkou Span/Kumo）：</strong> 云层是Ichimoku云的主要组成部分之一，包括两条线，分别称为 Senkou Span A 和 Senkou Span B。Senkou Span A 通常表示为浅绿色线，是转换线和基准线的平均值，向前移动26个交易日。Senkou Span B 通常表示为深绿色线，是最近52个交易日的最高价和最低价的平均值，向前移动26个交易日。云层的颜色表示价格走势的方向，例如，云层由浅绿色变为深绿色可能表示上升趋势。</p>
+<p><strong>4. 未来云（Future Cloud）：</strong> 未来云是Ichimoku云中的一部分，通常由两个 Senkou Span 线组成，即 Senkou Span A 和 Senkou Span B。未来云的颜色也表示价格走势的方向，可以用来预测未来价格趋势。云层和未来云之间的区域称为“云中”也叫雲 kumo (抵抗帯 teikoutai )，可以用来识别支撑和阻力水平。</p>
+<p><strong>5. 延迟线（遅行スパン Chikou Span）：</strong> 延迟线是 Ichimoku 云的最后一个组成部分，通常表示为橙色线。它是当前收盘价移动到过去26个交易日的线。延迟线用于提供价格走势的确认，当延迟线在云层或未来云之上时，可能表示上升趋势，当它在云层或未来云之下时，可能表示下降趋势。</p>
+<p>Ichimoku 云的主要应用包括：</p>
+<ul>
+<li>
+<p>识别趋势：Ichimoku 云可以帮助交易者识别价格的长期和中期趋势。上升趋势通常表现为云层由浅绿色变为深绿色，而下降趋势则相反。</p>
+</li>
+<li>
+<p>支撑和阻力：云层和未来云中的区域可以用作支撑和阻力水平的参考。</p>
+</li>
+<li>
+<p>买卖信号：均线的交叉以及价格与云层的相对位置可以提供买入和卖出信号。</p>
+</li>
+</ul>
+<p>需要注意的是，Ichimoku 云是一种复杂的工具，通常需要深入学习和理解。交易者应该谨慎使用，并结合其他技术指标和市场分析方法来进行综合分析。</p>
+<h3 id="2710威廉指标williams-r">27.10：威廉指标（Williams %R）</h3>
+<p>威廉指标（Williams %R），也称为威廉超买超卖指标，是一种用于衡量市场超买和超卖情况的动量振荡指标。它是由拉里·威廉斯（Larry Williams）在20世纪70年代开发的。威廉指标的主要目标是帮助交易者识别价格反转点，并提供买入和卖出的时机。</p>
+<p>以下是威廉指标的详细解释：</p>
+<ol>
+<li>
+<p><strong>计算方式：</strong> 威廉指标的计算基于以下公式：</p>
+<p>威廉%R = [（最高价 - 当前收盘价） / （最高价 - 最低价）] * (-100)</p>
+<ul>
+<li>最高价是在一定时间内的最高价格。</li>
+<li>最低价是在一定时间内的最低价格。</li>
+<li>当前收盘价是当前周期的收盘价格。</li>
+</ul>
+<p>威廉%R的值通常在-100到0之间波动，其中-100表示市场处于最超卖状态，0表示市场处于最超买状态。</p>
+</li>
+<li>
+<p><strong>超买和超卖情况：</strong> 威廉指标的主要应用是识别市场的超买和超卖情况。当威廉%R的值位于-80或更高时，通常被认为市场处于超卖状态，可能会发生价格上涨的机会。相反，当威廉%R的值位于-20或更低时，通常被认为市场处于超买状态，可能会发生价格下跌的机会。</p>
+</li>
+<li>
+<p><strong>买入和卖出信号：</strong> 威廉指标的买入和卖出信号通常基于以下条件：</p>
+<ul>
+<li>
+<p>买入信号：当威廉%R的值从超卖区域向上穿越-20时，产生买入信号。这表示市场可能正在从超卖状态中反弹，并可能迎来价格上涨。</p>
+</li>
+<li>
+<p>卖出信号：当威廉%R的值从超买区域向下穿越-80时，产生卖出信号。这表示市场可能正在从超买状态中回调，并可能迎来价格下跌。</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>背离（Divergence）：</strong> 交易者还可以使用威廉指标与价格图形之间的背离来确认信号。例如，如果价格创下新高而威廉%R没有创新高，这可能表示价格反转的信号。</p>
+</li>
+<li>
+<p><strong>适用性：</strong> 威廉指标适用于各种市场，包括股票、外汇、期货和加密货币。然而，需要注意的是，它在不同市场环境下表现可能不同，因此交易者应该谨慎使用，并结合其他技术指标和分析方法来提高准确性。</p>
+</li>
+</ol>
+<p>需要强调的是，威廉指标是一种动量振荡指标，通常用于短期交易。交易者应该将其与其他分析工具和风险管理策略结合使用，以作出更明智的交易决策。</p>
+<h3 id="2711均幅指标average-directional-movement-indexadx">27.11：均幅指标（Average Directional Movement Index，ADX）</h3>
+<p>均幅指标（Average Directional Movement Index，ADX）是一种用于衡量市场趋势强度和方向的技术指标。它是由威尔斯·威尔德（Welles Wilder）在1978年首次引入，并在他的著作《新概念技术分析》中详细描述。ADX的主要用途是帮助交易者确认是否存在趋势并评估趋势的强度。以下是对ADX的详细解释：</p>
+<ol>
+<li>
+<p><strong>计算方式：</strong> ADX的计算基于一系列的步骤：</p>
+<p>a. <strong>真实范围（True Range）：</strong> 首先，需要计算每个周期的真实范围。真实范围是以下三个值中的最大值：</p>
+<ul>
+<li>当前周期的最高价与最低价之差。</li>
+<li>当前周期的最高价与前一个周期的收盘价之差的绝对值。</li>
+<li>当前周期的最低价与前一个周期的收盘价之差的绝对值。</li>
+</ul>
+<p>b. <strong>方向定向运动（Directional Movement）：</strong> 接下来，需要计算正方向定向运动（+DI）和负方向定向运动（-DI）。这些值用于测量上升和下降的趋势方向。+DI表示上升趋势方向，而-DI表示下降趋势方向。</p>
+<p>c. <strong>方向定向运动指数（Directional Movement Index，DX）：</strong> DX是+DI和-DI之间的差值的绝对值除以它们的和的百分比。</p>
+<p>d. <strong>平均方向定向运动指数（Average Directional Movement Index，ADX）：</strong> 最后，ADX是DX的移动平均线，通常使用14个周期的简单移动平均线。</p>
+</li>
+<li>
+<p><strong>ADX的取值范围：</strong> ADX的值通常在0到100之间，表示市场趋势的强度。一般来说，ADX的值越高，趋势越强。当ADX的值高于25到30时，通常被视为趋势强度足够，可以考虑进行趋势跟随交易。当ADX的值低于25到20时，通常被视为市场处于非趋势状态，可能更适合进行区间交易或避免交易。</p>
+</li>
+<li>
+<p><strong>ADX的应用：</strong> ADX可以用于以下方式：</p>
+<ul>
+<li>
+<p><strong>确认趋势：</strong> ADX可以帮助交易者确认市场是否处于趋势状态。当ADX的值升高时，表示市场可能处于强烈的趋势中，可以考虑跟随趋势交易。反之，当ADX的值低时，市场可能处于震荡或横盘状态。</p>
+</li>
+<li>
+<p><strong>评估趋势强度：</strong> ADX的值可以用来评估趋势的强度。较高的ADX值表示趋势更强烈，而较低的ADX值表示趋势较弱。</p>
+</li>
+<li>
+<p><strong>确定交易策略：</strong> 交易者可以将ADX与其他技术指标结合使用，例如移动平均线或相对强度指标（RSI），来制定交易策略。</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>需要注意的是，ADX是一个延迟指标，因为它是基于一定周期的数据计算的。交易者应该将ADX与其他分析工具和风险管理策略一起使用，以作出明智的交易决策。</p>
+<h3 id="2712多重时间框架分析multiple-time-frame-analysis">27.12：多重时间框架分析（Multiple Time Frame Analysis）</h3>
+<p>多重时间框架分析（Multiple Time Frame Analysis）是一种广泛用于技术分析和交易决策的方法。它的基本理念是，在进行技术分析时，不仅要考虑单一的时间框架（例如日线图或小时图），而是要同时考虑多个不同时间周期的图表，以获得更全面的市场信息和更可靠的交易信号。多重时间框架分析有助于交易者更好地了解市场的大趋势、中期趋势和短期趋势，以便更明智地做出交易决策。</p>
+<p>以下是多重时间框架分析的详细解释：</p>
+<ol>
+<li>
+<p><strong>选择多个时间框架：</strong> 首先，交易者需要选择多个不同的时间框架来分析市场。通常，会选择长期、中期和短期时间框架，如日线图（长期）、4小时图（中期）和1小时图（短期）。</p>
+</li>
+<li>
+<p><strong>分析长期趋势：</strong> 在最长时间框架上，交易者将查看市场的长期趋势。这有助于确定市场的主要趋势方向，例如是否是上升、下降或横盘。长期趋势分析通常涉及到趋势线、移动平均线和其他长期指标的使用。</p>
+</li>
+<li>
+<p><strong>分析中期趋势：</strong> 在中期时间框架上，交易者将更详细地研究市场的中期趋势。这有助于确定长期趋势中的次要波动。中期趋势通常以几天到几周为单位。交易者可以使用各种技术工具，如MACD（移动平均收敛散度）或RSI（相对强弱指标）来分析中期趋势。</p>
+</li>
+<li>
+<p><strong>分析短期趋势：</strong> 在短期时间框架上，交易者将更仔细地观察市场的短期波动。这有助于确定在中期和长期趋势中的适当入场和出场点。短期趋势通常以几小时到几天为单位。在这个时间框架上，交易者可能使用技术分析中的各种图形和信号，如头肩顶和双底，以及短期移动平均线。</p>
+</li>
+<li>
+<p><strong>协调分析结果：</strong> 最后，交易者需要协调不同时间框架的分析结果。例如，如果长期趋势是上升的，中期趋势也是上升的，那么短期内出现的下跌可能只是短期波动，而不是反转趋势的信号。这种协调有助于避免错误的交易决策。</p>
+</li>
+</ol>
+<p>多重时间框架分析的优势在于它提供了更全面的市场视角，有助于降低交易者因短期波动而做出的错误决策的风险。然而，这也需要更多的时间和分析工作，因此需要交易者有耐心和技术分析的知识。</p>
+<p>最后，多重时间框架分析不是一种绝对的成功方法，而是一种帮助交易者更好地理解市场的工具。成功的交易还依赖于风险管理、资金管理和心理控制等其他因素。</p>
+<h3 id="2713-指标的遴选和应用">27.13 指标的遴选和应用</h3>
+<p>有这么多判断超卖超买的指标，到底该怎么选择呢？选择哪种指标来判断超买和超卖情况，以及其他技术分析工具，取决于你的个人偏好、交易策略和市场状况。以下是一些建议，帮助你在使用这些指标时作出明智的选择：</p>
+<ol>
+<li>
+<p><strong>了解不同指标的原理和计算方法：</strong> 首先，你应该深入了解每个指标的工作原理、计算方式以及它们所衡量的市场特征。这将帮助你更好地理解它们在不同市场情况下的适用性。</p>
+</li>
+<li>
+<p><strong>根据交易策略选择指标：</strong> 你的交易策略应该是决定使用哪些指标的关键因素。不同的策略可能需要不同类型的指标。例如，日内交易者可能更关心短期波动，而长期投资者可能更关心趋势的长期方向。</p>
+</li>
+<li>
+<p><strong>多指标确认：</strong> 通常，不应该依赖单一指标来做出决策。相反，使用多个指标来确认信号，可以提高你的决策的可靠性。例如，当多个指标同时显示超买信号时，这可能更具说服力。</p>
+</li>
+<li>
+<p><strong>了解市场条件：</strong> 不同的市场条件下，不同的指标可能更有效。在平静的市场中，可能更容易出现超买或超卖情况，而在趋势明显的市场中，其他趋势跟踪指标可能更有用。</p>
+</li>
+<li>
+<p><strong>适应时间周期：</strong> 选择指标时，要考虑你所交易的时间周期。某些指标可能在较短时间框架上更为有效，而其他指标可能在较长时间框架上更为有效。</p>
+</li>
+<li>
+<p><strong>实践和回测：</strong> 在真实市场之前，先在模拟环境中使用不同的指标进行回测和实践。这可以帮助你了解不同指标的表现，并找到最适合你的策略的指标组合。</p>
+</li>
+<li>
+<p><strong>风险管理：</strong> 无论你选择哪些指标，都要记住风险管理的重要性。不要仅仅依赖指标来做出决策，而是将其作为整个交易计划的一部分。</p>
+</li>
+</ol>
+<p>最终，选择哪些指标是一项个人化的决策，需要基于你的交易目标、风险承受能力和市场条件做出。建议与其他经验丰富的交易者交流，学习他们的方法，并根据自己的经验不断优化你的交易策略。</p>
+<p>判断这些指标在回测中的表现需要进行系统性的分析和评估。以下是一些步骤，未来会帮助我们来评估指标在回测中的表现：</p>
+<ol>
+<li><strong>选择回测平台和数据源：</strong> 首先，选择一个可信赖的回测平台或软件，并获取高质量的历史市场数据。确保我们的回测环境与实际交易条件尽可能一致。</li>
+<li><strong>制定明确的交易策略：</strong> 在回测之前，明确定义我们的交易策略，包括入场规则、出场规则、止损和止盈策略，以及资本管理规则。确保策略清晰且可操作。</li>
+<li><strong>回测参数设置：</strong> 针对每个指标，设置适当的参数值。例如，对于RSI，我们可以测试不同的周期（通常是14天），并确定哪个周期在历史数据上表现最好。</li>
+<li><strong>回测时间段：</strong> 选择一个适当的回测时间段，可以是几年或更长时间的历史数据。确保涵盖不同市场情况，包括趋势市和横盘市。</li>
+<li><strong>执行回测：</strong> 使用所选的回测平台执行回测，根据我们的策略和参数值生成交易信号，并模拟实际交易。记录每笔交易的入场和出场价格、止损和止盈水平，以及交易成本（如手续费和滑点）。</li>
+<li><strong>绩效度量：</strong> 评估回测的绩效。常见的绩效度量包括：
+<ul>
+<li><strong>累积回报率（Cumulative Returns）：</strong> 查看策略的总回报。</li>
+<li><strong>胜率（Win Rate）：</strong> 计算获利交易的比例。</li>
+<li><strong>最大回撤（Maximum Drawdown）：</strong> 识别策略在最差情况下可能遭受的损失。</li>
+<li><strong>夏普比率（Sharpe Ratio）：</strong> 衡量每单位风险所产生的回报。</li>
+<li><strong>年化回报率（Annualized Returns）：</strong> 将回报率 annualize 为年度水平。</li>
+</ul>
+</li>
+<li><strong>优化参数：</strong> 如果回测结果不理想，可以尝试不同的参数组合或修改策略规则，然后重新进行回测，以寻找更好的表现。</li>
+<li><strong>风险管理：</strong> 在回测中也要考虑风险管理策略，如止损和止盈水平的设置，以及头寸规模的管理。</li>
+<li><strong>实时模拟测试：</strong> 最后，在回测表现良好后，进行实时模拟测试以验证策略在实际市场条件下的表现。</li>
+</ol>
+<p>不过最好还是要有这个意识——回测是一种有限制的模拟，不能保证未来表现与历史表现相同。市场条件会不断变化，因此，我建议我们应该将回测作为策略开发的一部分，而不是最终的唯一决策依据。此外，在未来我们要持续注意避免过度拟合（过度优化）的问题，不要过于依赖特定的参数组合，而是寻找稳健的策略。最好的方法是持续监测和优化我们的交易策略，以适应不断变化的市场。</p> </div> <footer class="astro-w7wtsaw6"> <div class="meta sl-flex astro-w7wtsaw6">   </div> <div class="pagination-links astro-qnftudm7" dir="ltr"> <a href="/chapters/chapter_26/" rel="prev" class="astro-qnftudm7"> <svg aria-hidden="true" class="astro-qnftudm7 astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17 11H9.41l3.3-3.29a1.004 1.004 0 1 0-1.42-1.42l-5 5a1 1 0 0 0-.21.33 1 1 0 0 0 0 .76 1 1 0 0 0 .21.33l5 5a1.002 1.002 0 0 0 1.639-.325 1 1 0 0 0-.219-1.095L9.41 13H17a1 1 0 0 0 0-2Z"/></svg>  <span class="astro-qnftudm7"> Previous <br class="astro-qnftudm7"> <span class="link-title astro-qnftudm7">26. 文档和测试【未完成】</span> </span> </a> <a href="/chapters/chapter_28/" rel="next" class="astro-qnftudm7"> <svg aria-hidden="true" class="astro-qnftudm7 astro-xrndq6a6" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17.92 11.62a1.001 1.001 0 0 0-.21-.33l-5-5a1.003 1.003 0 1 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1.002 1.002 0 0 0 .325 1.639 1 1 0 0 0 1.095-.219l5-5a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76Z"/></svg>  <span class="astro-qnftudm7"> Next <br class="astro-qnftudm7"> <span class="link-title astro-qnftudm7">28. 统计模型【未完成】</span> </span> </a> </div>  </footer>  </div> </div>   </main> </div> </div>  </div> </div>  </body></html>
