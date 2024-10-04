@@ -1,18 +1,18 @@
-# Chapter 2 - 格式化输出
+# Chapter 02 - 格式化输出
 
-##  2.1 诸种格式宏(format macros)
+##  2.1 诸种格式宏（format macros）
 
-Rust的打印操作由 `std::fmt` 里面所定义的一系列宏 Macro 来处理，包括：
+Rust 的打印操作由 `std::fmt` 里面所定义的一系列宏 Macro 来处理，包括：
 
 `format!`：将格式化文本写到字符串。
 
-`print!`：与 format! 类似，但将文本输出到控制台(io::stdout)。
+`print!`：与 `format!` 类似，但将文本输出到控制台（`io::stdout`）。
 
-`println!`: 与 print! 类似，但输出结果追加一个换行符。
+`println!`: 与 `print!` 类似，但输出结果追加一个换行符。
 
-`eprint!`：与 print! 类似，但将文本输出到标准错误(io::stderr)。
+`eprint!`：与 `print!` 类似，但将文本输出到标准错误（`io::stderr`）。
 
-`eprintln!`：与 eprint! 类似，但输出结果追加一个换行符。
+`eprintln!`：与 `eprint!` 类似，但输出结果追加一个换行符。
 
 ### 案例：折现计算器
 
@@ -56,20 +56,19 @@ fn main() {
 
 fn calculate_present_value(principal: f64, discount_rate: f64, time_period: u32) -> f64 {
     if discount_rate < 0.0 {
-        eprint!("\n错误：折现率不能为负数！ ");    // '\n'为换行转义符号
+        eprint!("\n错误：折现率不能为负数！");    // '\n'为换行转义符号
         eprintln!("\n请提供有效的折现率。");
         std::process::exit(1);
     }
 
     if time_period == 0 {
-        eprint!("\n错误：时间期限不能为零！ ");
+        eprint!("\n错误：时间期限不能为零！");
         eprintln!("\n请提供有效的时间期限。");
         std::process::exit(1);
     }
 
     principal / (1.0 + discount_rate).powi(time_period as i32)
 }
-
 ```
 
 现在我们来使用一下这个折现计算器
@@ -83,7 +82,7 @@ fn calculate_present_value(principal: f64, discount_rate: f64, time_period: u32)
 现值为：1388.89
 ```
 
-当我们输入一个负的折现率后, 我们用eprint!和eprintln!预先编辑好的错误信息就出现了:
+当我们输入一个负的折现率后，我们用 `eprint!` 和 `eprintln!` 预先编辑好的错误信息就出现了：
 
 ```shell
 折现计算器
@@ -91,21 +90,22 @@ fn calculate_present_value(principal: f64, discount_rate: f64, time_period: u32)
 请输入折现率(以小数形式)：-0.2
 请输入时间期限(以年为单位)：5
 
-错误：折现率不能为负数！ 请提供有效的折现率。
+错误：折现率不能为负数！请提供有效的折现率。
 ```
 
 ## 2.2 Debug 和 Display 特性
 
 > `fmt::Debug`：使用 {:?} 标记。格式化文本以供**调试使用**。
+> 
 > `fmt::Display`：使用 {} 标记。以**更优雅和友好的风格**来格式化文本。
 
-在 Rust 中，你可以为自定义类型(包括结构体 `struct`)实现 `Display` 和 `Debug` 特性来控制如何以可读和调试友好的方式打印(格式化)该类型的实例。这两个特性是 Rust 标准库中的 trait，它们提供了不同的打印输出方式，适用于不同的用途。
+在 Rust 中，你可以为自定义类型（包括结构体 `struct`）实现 `Display` 和 `Debug` 特性来控制如何以可读和调试友好的方式打印(格式化)该类型的实例。这两个特性是 Rust 标准库中的 trait，它们提供了不同的打印输出方式，适用于不同的用途。
 
 **Display 特性：**
 
 - `Display` 特性用于定义类型的人类可读字符串表示形式，通常用于用户友好的输出。例如，你可以实现 `Display` 特性来打印结构体的信息，以便用户能够轻松理解它。
 
-- 要实现 `Display` 特性，必须定义一个名为 `fmt` 的方法，它接受一个格式化器对象(`fmt::Formatter`)作为参数，并将要打印的信息写入该对象。
+- 要实现 `Display` 特性，必须定义一个名为 `fmt` 的方法，它接受一个格式化器对象（`fmt::Formatter`）作为参数，并将要打印的信息写入该对象。
 
 - 使用 `{}` 占位符可以在 `println!` 宏或 `format!` 宏中使用 `Display` 特性。
 
@@ -121,9 +121,9 @@ fn calculate_present_value(principal: f64, discount_rate: f64, time_period: u32)
 
 
 
-### 案例： 打印股票价格信息和金融报告
+### 案例：打印股票价格信息和金融报告
 
-**股票价格信息**：(由**Display Trait**推导)
+**股票价格信息（由 Display Trait 推导）：**
 
 ```rust
 // 导入 fmt 模块中的 fmt trait，用于实现自定义格式化
@@ -155,7 +155,7 @@ fn main() {
 }
 ```
 
-**执行结果:** 
+**执行结果：** 
 
 ```shell
 [INFO]: Stock: AAPL - Price: 150.25
@@ -163,7 +163,7 @@ fn main() {
 
 
 
-**金融报告**：(由**Debug Trait**推导)
+**金融报告：（由 Debug Trait 推导）**
 
 ```rust
 // 导入 fmt 模块中的 fmt trait，用于实现自定义格式化
@@ -191,7 +191,7 @@ fn main() {
 }
 ```
 
-**执行结果:** 
+**执行结果：** 
 
 ```
 金融报告:
@@ -200,17 +200,17 @@ Expenses: 7500.00 //手动格式化的语句
 FinancialReport { income: 10000.0, expenses: 7500.0 } //Debug Trait帮我们推导的原始语句
 ```
 
-## 2.3  write! , print! 和 format!的区别
+## 2.3 `write!`、`print!` 和 `format!` 的区别
 
 `write!`、`print!` 和 `format!` 都是 Rust 中的宏，用于生成文本输出，但它们在使用和输出方面略有不同：
 
-1. `write!`：
+### `write!`
 
-   - `write!` 宏用于将格式化的文本写入到一个实现了 `std::io::Write` trait 的对象中，通常是文件、标准输出(`std::io::stdout()`)或标准错误(`std::io::stderr()`)。
+   - `write!` 宏用于将格式化的文本写入到一个实现了 `std::io::Write` trait 的对象中，通常是文件、标准输出（`std::io::stdout()`）或标准错误（`std::io::stderr()`）。
 
    - 使用 `write!` 时，你需要指定目标输出流，将生成的文本写入该流中，而不是直接在控制台打印。
 
-   - `write!` 生成的文本不会立即显示在屏幕上，而是需要进一步将其刷新(flush)到输出流中。
+   - `write!` 生成的文本不会立即显示在屏幕上，而是需要进一步将其刷新（flush）到输出流中。
 
    - 示例用法：
 
@@ -225,7 +225,7 @@ FinancialReport { income: 10000.0, expenses: 7500.0 } //Debug Trait帮我们推�
      }
      ```
 
-2. `print!`：
+### `print!`
 
    - `print!` 宏用于直接将格式化的文本打印到标准输出(控制台)，而不需要指定输出流。
 
@@ -239,7 +239,7 @@ FinancialReport { income: 10000.0, expenses: 7500.0 } //Debug Trait帮我们推�
      }
      ```
 
-3. `format!`：
+### `format!`
 
    - `format!` 宏用于生成一个格式化的字符串，而不是直接将其写入输出流或打印到控制台。
 
@@ -257,5 +257,5 @@ FinancialReport { income: 10000.0, expenses: 7500.0 } //Debug Trait帮我们推�
 总结：
 
 - 如果你想将格式化的文本输出到标准输出，通常使用 `print!`。
-- 如果你想将格式化的文本输出到文件或其他实现了 `Write` trait 的对象，使用 `write!`。
+- 如果你想将格式化的文本输出到文件或其他实现了 `write` trait 的对象，使用 `write!`。
 - 如果你只想生成一个格式化的字符串而不需要立即输出，使用 `format!`。
