@@ -497,7 +497,7 @@ fn main() {
     let mut stock_prices = vec![50.0, 55.0, 60.0, 65.0, 70.0];
 
     // 定义更新股票价格的闭包
-    let mut update_stock_prices = |prices: &mut Vec<f64>| {
+    let update_stock_prices = |prices: &mut Vec<f64>| {
         for price in prices.iter_mut() {
             // 模拟市场波动，更新价格
             let market_fluctuation = rand::random::<f64>() * 5.0 - 2.5;
