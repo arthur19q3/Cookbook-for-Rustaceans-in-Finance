@@ -97,7 +97,7 @@
 以下是一个更简单的例子，演示如何编写一个泛型函数 `find_max` 来查找任何类型的元素列表中的最大值：
 
 ```rust
-fn find_max_and_report_letters(list: &[&str]) -> Option<f64> {
+fn find_max_and_report_letters<T: AsRef<str>>(list: &[T]) -> Option<f64> {
     if list.is_empty() {
         return None; // 如果列表为空，返回 None
     }
@@ -106,7 +106,7 @@ fn find_max_and_report_letters(list: &[&str]) -> Option<f64> {
     let mut has_letters = false; // 用来标记是否包含字母
 
     for item in list.iter() {
-        match item.parse::<f64>() {
+        match item.as_ref().parse::<f64>() {
             Ok(number) => {
                 // 如果成功解析为浮点数
                 if max.is_none() || number > max.unwrap() {
@@ -147,8 +147,7 @@ fn main() {
 ```
 
 
-
-在这个例子中，`find_max` 函数接受一个泛型切片 `list`，并在其中查找最大值。首先，它检查列表是否为空，如果是，则返回 `None`。然后，它遍历列表中的每个元素，将当前最大值与元素进行比较，如果找到更大的元素，就更新 `max`，并且如果有字母还会汇报给我们。最后，函数返回找到的最大值作为 `Option<&T>`。
+在这个例子中，`find_max_and_report_letters` 函数接受一个泛型 T 切片 `list`，T 可以是任何实现了 AsRef<str> trait 的类型，包括 &str 和 String，在其中查找最大值。首先，它检查列表是否为空，如果是，则返回 `None`。然后，它遍历列表中的每个元素，在 parse 方法调用前添加 as_ref()，将 T 转换为 &str，因为 parse 方法需要一个 &str 类型的参数。将当前最大值与元素进行比较，如果找到更大的元素，就更新 `max`，并且如果有字母还会汇报给我们。最后，函数返回找到的最大值作为 `Option<&T>`。
 
 ### 10.1.2 高阶函数(Higher-Order Functions)
 
