@@ -564,11 +564,9 @@ fn main() {
 **金融报告**：(由**Debug Trait**推导)
 
 ```rust
-// 导入 fmt 模块中的 fmt trait，用于实现自定义格式化
-use std::fmt;
-
 // 定义一个结构体 FinancialReport，表示财务报告
 // 使用 #[derive(Debug)] 属性来自动实现 Debug trait，以便能够使用 {:?} 打印调试信息
+#[derive(Debug)]
 struct FinancialReport {
     income: f64,    // 收入
     expenses: f64,  // 支出
